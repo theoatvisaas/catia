@@ -2,12 +2,11 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
+import { t } from "../../i18n"; // ✅ ajuste se necessário
 import { globalStyles } from "../../styles/theme";
 import { colors } from "../../styles/theme/colors";
 
 function LogoMark() {
-  // Ícone roxinho à esquerda do "AssistantDr"
-  // (4 barrinhas arredondadas, alturas diferentes — bem parecido com o print)
   const bars = useMemo(
     () => [
       { h: 10, mt: 10 },
@@ -45,10 +44,12 @@ export default function Login() {
             <Text style={globalStyles.brandText}>AssistantDr</Text>
           </View>
 
-          <Text style={globalStyles.subtitle}>Sign in</Text>
+          <Text style={globalStyles.subtitle}>{t("auth", "subtitle")}</Text>
         </View>
 
-        <Text style={globalStyles.label}>E-mail *</Text>
+        <Text style={globalStyles.label}>
+          {t("auth", "emailLabel")} *
+        </Text>
         <TextInput
           style={globalStyles.input}
           placeholder=""
@@ -56,7 +57,9 @@ export default function Login() {
           autoCapitalize="none"
         />
 
-        <Text style={globalStyles.label}>Password *</Text>
+        <Text style={globalStyles.label}>
+          {t("auth", "passwordLabel")} *
+        </Text>
         <View style={globalStyles.passwordWrap}>
           <TextInput
             style={[globalStyles.input, globalStyles.passwordInput]}
@@ -81,17 +84,23 @@ export default function Login() {
           style={globalStyles.button}
           onPress={() => router.replace("/dashboard")}
         >
-          <Text style={globalStyles.buttonText}>Sign in</Text>
+          <Text style={globalStyles.buttonText}>
+            {t("auth", "submitButton")}
+          </Text>
         </Pressable>
 
-        <Pressable style={globalStyles.linkRow}
-          onPress={() => router.replace("/signup")}>
-          <Text style={globalStyles.linkMuted}>{"Don't have an account yet? "}</Text>
-          <Text style={globalStyles.linkStrong}>Sign up</Text>
+        <Pressable
+          style={globalStyles.linkRow}
+          onPress={() => router.replace("/signup")}
+        >
+          <Text style={globalStyles.linkMuted}>{t("auth", "noAccount")}</Text>
+          <Text style={globalStyles.linkStrong}>{t("auth", "signUp")}</Text>
         </Pressable>
 
         <Pressable style={globalStyles.forgotWrap}>
-          <Text style={globalStyles.linkStrong}>Forgot your password?</Text>
+          <Text style={globalStyles.linkStrong}>
+            {t("auth", "forgotPassword")}
+          </Text>
         </Pressable>
       </View>
     </View>
