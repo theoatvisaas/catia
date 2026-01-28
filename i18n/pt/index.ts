@@ -80,6 +80,55 @@ const pt = {
     featureLearning: "Dr. Assistente aprende com seus feedbacks",
   },
 
+  record: {
+    title: "O que você vai gravar?",
+    selectMode: "Selecionar esse modo",
+    modeConsultTitle: "Consulta Veterinária",
+    modeConsultLine1: "Grave a consulta completa ou apenas um breve relato do atendimento. O Dr. Assistente gera automaticamente o resumo para o prontuário e relatórios adicionais.",
+    modeConsultDuration: "Duração máxima de 90 minutos.",
+    modeDictTitle: "Ditado",
+    modeDictLine1: "Grave um texto para ser transcrito.",
+    modeDictLine2: "Dr. Assistente irá transcrever o texto, fazendo correções simples e organizando em parágrafos.",
+    modeDictDuration: "Duração máxima de 15 minutos.",
+  },
+
+  newRecord: {
+    title: "Nova Gravação",
+    cardTitle: "Consulta Veterinária",
+    patientLabel: "Nome do Paciente (opcional)",
+    guardianLabel: "Nome do Responsável (opcional)",
+    male: "Macho",
+    female: "Fêmea",
+    record: "Gravar",
+    importantStrong: "Importante:",
+    importantText: "Não bloqueie o celular nem saia do aplicativo enquanto estiver gravando.",
+    guideTitle: "Guia para Consulta Veterinária",
+    guideParagraph1: "O Dr. Assistente entende automaticamente quais relatórios podem ser úteis para você e gera todos eles de forma rápida e automática, utilizando apenas uma única gravação. Você pode optar por gravar a consulta completa com o paciente ou fazer um breve relato narrando como foi o atendimento. A seguir está apenas uma amostra dos principais relatórios disponíveis:",
+    guideParagraph2: "",
+    report1Title: "Resumo para o Prontuário:",
+    report1Desc: "Preparado exatamente na estrutura detalhada abaixo.",
+    report2Title: "Mensagem para o Tutor:",
+    report2Desc: "Uma mensagem personalizada e acolhedora com informações relevantes discutidas na consulta para ser enviada ao responsável pelo animal.",
+
+    report3Title: "Mensagem de Agradecimento por Indicação:",
+    report3Desc: "Se o paciente foi indicado por outro profissional, o Dr. Assistente identificará automaticamente essa situação e gerará uma mensagem personalizada de agradecimento ao profissional que encaminhou o paciente, explicando brevemente sobre o caso.",
+    report4Title: "Mensagem de Encaminhamento:",
+    report4Desc: "Caso o paciente precise ser encaminhado para outro especialista, será gerada automaticamente uma mensagem com uma breve descrição do caso para facilitar a comunicação com o próximo profissional.",
+    guideFooter: "Esses relatórios são padrões no sistema, mas nos planos Individual Pro e Planos para Clínicas e Hospitais é possível criar relatórios personalizados.",
+  },
+
+  historyLoading: {
+    headerTitle: "Transcrição",
+    metaDate: "21 de janeiro, 20:19",
+    patientTitle: "Paciente não identificado",
+    title: "Preparando seus Relatórios",
+    step: "Transcrevendo sua gravação",
+    hint:
+      "Você pode sair desta página ou iniciar uma nova gravação. Seus relatórios aparecerão aqui quando estiverem prontos.",
+    footer: "Feedback? Clique aqui para falar com a nossa equipe.",
+    advancedActions: "Ações Avançadas",
+  },
+
 
 
   common: {

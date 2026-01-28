@@ -82,7 +82,7 @@ export default function Login() {
 
         <Pressable
           style={globalStyles.button}
-          onPress={() => router.replace("/dashboard")}
+          onPress={() => router.replace("/record")}
         >
           <Text style={globalStyles.buttonText}>
             {t("auth", "submitButton")}

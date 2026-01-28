@@ -25,7 +25,9 @@ export default function BottomBar() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
 
-  const isActive = (route: string) => pathname === route;
+  const isActive = (route: string) =>
+    pathname === route || pathname.startsWith(route + "/");
+
 
   return (
     <View

@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import BottomBar from "../../../components/app/BottomBar";
 import { t } from "../../../i18n";
 import { globalStyles } from "../../../styles/theme";
 import { colors } from "../../../styles/theme/colors";
@@ -215,7 +214,6 @@ export default function SettingsScreen() {
                 </View>
             </ScrollView>
 
-            <BottomBar />
         </View>
     );
 }

@@ -329,7 +329,7 @@ export const globalStyles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md, // ✅ padrão global 16
+    paddingHorizontal: spacing.md,
     paddingBottom: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -337,8 +337,8 @@ export const globalStyles = StyleSheet.create({
 
   topHeaderTitle: {
     ...typography.body,
-    color: colors.textPrimary,
-    fontWeight: "700",
+    color: colors.textSecondary,
+    fontWeight: "500",
     fontSize: 14,
   },
 
@@ -347,7 +347,7 @@ export const globalStyles = StyleSheet.create({
   },
 
   settingsContent: {
-    paddingHorizontal: spacing.md, // ✅ padrão global 16
+    paddingHorizontal: spacing.md,
     paddingTop: 18,
   },
 
@@ -793,5 +793,746 @@ export const globalStyles = StyleSheet.create({
     includeFontPadding: false,
     textAlignVertical: "center",
   },
+
+  // =========================
+  // RECORD
+  // =========================
+  recordScroll: {
+    flex: 1,
+    backgroundColor: colors.modalBackground,
+  },
+
+  recordContent: {
+    paddingHorizontal: spacing.md,
+    paddingTop: 18,
+    paddingBottom: 18,
+    gap: 16,
+  },
+
+  recordCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,          // ✅ token global
+    borderWidth: 1,
+    borderColor: colors.border,
+
+    paddingHorizontal: spacing.md + 2, // 18 visualmente
+    paddingVertical: 22,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 1,
+  },
+
+  recordCardTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: "600",
+    fontSize: 16,
+    marginBottom: 10,
+  },
+
+  recordCardText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+
+  recordCardHint: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 14,
+  },
+
+  recordCTA: {
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    borderRadius: radius.md,
+    alignItems: "center",
+    marginTop: 18,
+  },
+
+  recordCTAText: {
+    ...typography.body,
+    color: colors.onPrimary,
+    fontWeight: "800",
+    fontSize: 12,
+  },
+
+  // =========================
+  // NEW RECORD (mais parecido com o print)
+  // =========================
+  newRecordScroll: {
+    flex: 1,
+    backgroundColor: colors.modalBackground,
+  },
+
+  newRecordContent: {
+    paddingHorizontal: spacing.md,
+    paddingTop: 14,
+    paddingBottom: 18,
+    gap: 14,
+  },
+
+  newRecordCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+
+    paddingHorizontal: spacing.md,
+    paddingVertical: 16,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 1,
+  },
+
+  newRecordCardTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: "800",
+    fontSize: 16,
+    marginBottom: 12,
+  },
+
+  newRecordFieldLabel: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginBottom: 8,
+  },
+
+  newRecordInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: colors.surface,
+    ...typography.body,
+    color: colors.textPrimary,
+
+    // deixa o input com altura mais "reta" igual print
+    height: 40,
+  },
+
+  newRecordSegmentRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 28,
+    marginBottom: 28,
+  },
+
+  newRecordSegment: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    minWidth: 64,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  newRecordSegmentActive: {
+    borderColor: colors.primary,
+  },
+
+  newRecordSegmentText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  newRecordSegmentTextActive: {
+    color: colors.primary,
+    fontWeight: "800",
+  },
+
+  // pill do "Gravar" mais estreito e com ícone mais à esquerda
+  newRecordMicButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: 44,
+    paddingHorizontal: 18,
+    alignItems: "center",
+    flexDirection: "row",
+    alignSelf: "center",
+    width: 190, // 🔑 deixa igual print (menos largo)
+  },
+
+  newRecordMicIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  newRecordMicText: {
+    ...typography.body,
+    color: colors.onPrimary,
+    fontWeight: "400",
+    fontSize: 14,
+    flex: 1,
+    textAlign: "center", // 🔑 centraliza o texto enquanto ícone fica à esquerda
+    marginRight: 28,     // 🔑 compensa largura do ícone p/ ficar central “visual”
+  },
+
+  // box do aviso mais "azulado" como no print
+  newRecordInfoRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    backgroundColor: colors.modalInfoBackground,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+
+  newRecordInfoIcon: {
+    marginTop: 2,
+  },
+
+  newRecordInfoText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 12,
+    lineHeight: 16,
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+
+  newRecordInfoStrong: {
+    color: colors.textPrimary,
+    fontWeight: "800",
+  },
+
+  newRecordGuideTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: "800",
+    fontSize: 14,
+    marginBottom: 10,
+  },
+
+  newRecordGuideText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+
+  newRecordBulletList: {
+    marginTop: 14,
+    gap: 10,
+  },
+
+  newRecordBulletRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+  },
+
+  newRecordBulletDot: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 16,
+    lineHeight: 18,
+    marginTop: -1,
+  },
+
+  newRecordBulletText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 18,
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+
+  newRecordBulletStrong: {
+    color: colors.textPrimary,
+    fontWeight: "800",
+  },
+
+  // =========================
+  // VOICE ACTION (overlay do gravador)
+  // =========================
+  voiceActionOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    zIndex: 999,
+    elevation: 999,
+    justifyContent: "flex-end",
+  },
+
+  voiceActionBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.25)",
+  },
+
+  voiceActionContainer: {
+    backgroundColor: colors.warningRecord,
+    borderRadius: radius.md,
+    paddingVertical: 30,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.06)",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
+    height: 180,
+  },
+
+  voiceActionBars: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
+
+  voiceActionBar: {
+    width: 10,
+    height: 20,
+    borderRadius: 999,
+    backgroundColor: colors.warning ?? "#F5B942",
+    opacity: 0.9,
+  },
+
+  voiceActionBarTall: {
+    width: 10,
+    height: 28,
+    borderRadius: 999,
+    backgroundColor: colors.warning ?? "#F5B942",
+    opacity: 0.95,
+  },
+
+  voiceActionBarShort: {
+    width: 10,
+    height: 16,
+    borderRadius: 999,
+    backgroundColor: colors.warning ?? "#F5B942",
+    opacity: 0.85,
+  },
+
+  voiceActionButton: {
+    width: 230,
+    height: 48,
+    borderRadius: 999,
+    backgroundColor: colors.warningSurface, // fallback
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+
+  voiceActionButtonPressed: {
+    opacity: 0.9,
+  },
+
+  voiceActionIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+
+  voiceActionButtonText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  voiceActionTime: {
+    ...typography.body,
+    marginTop: 10,
+    color: colors.textSecondary,
+    fontSize: 12,
+  },
+
+  // =========================
+  // STOP ACTION (modal de pós-gravação)
+  // =========================
+  stopActionOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+
+  stopActionBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.25)",
+  },
+
+  stopActionSheet: {
+    backgroundColor: colors.modalBackground, // ou colors.surfaceBack
+    borderTopLeftRadius: radius.lg ?? radius.md,
+    borderTopRightRadius: radius.lg ?? radius.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: 18,
+    paddingBottom: 22,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -10 },
+    elevation: 14,
+    alignItems: "center",
+  },
+
+  stopActionButtonPressed: {
+    opacity: 0.92,
+  },
+
+  // Primary: Terminar
+  stopActionPrimaryButton: {
+    height: 52,
+    width: "50%",
+    borderRadius: 999,
+    backgroundColor: colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+  },
+
+  stopActionPrimaryIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  stopActionPrimaryText: {
+    ...typography.body,
+    color: colors.onPrimary,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+
+  // Secondary: Continuar (outline)
+  stopActionSecondaryButton: {
+    height: 52,
+    width: "50%",
+    borderRadius: 999,
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+    marginTop: 12,
+  },
+
+  stopActionSecondaryIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    backgroundColor: "rgba(124,58,237,0.12)", // roxo suave
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+
+  stopActionSecondaryText: {
+    ...typography.body,
+    color: colors.primary,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+
+  // Discard row
+  stopActionDiscardRow: {
+    marginTop: 16,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: radius.md,
+  },
+
+  stopActionDiscardPressed: {
+    backgroundColor: "rgba(0,0,0,0.04)",
+  },
+
+  stopActionDiscardText: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  // =========================
+  // UPLOAD RECORD (tela full)
+  // =========================
+  uploadRecordOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.surface,
+    zIndex: 1000,
+    elevation: 1000,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingTop: 50,
+  },
+
+  uploadRecordCard: {
+    width: "88%",
+    minHeight: 160,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    paddingVertical: 30,
+    paddingHorizontal: spacing.xl ?? spacing.lg,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.10,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 8,
+  },
+
+  uploadRecordIcon: {
+    color: colors.primary,
+    marginBottom: 14,
+  },
+
+  uploadRecordTitle: {
+    ...typography.body,
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.primary,
+    marginBottom: 8,
+  },
+
+  uploadRecordSubtitle: {
+    ...typography.body,
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 16,
+    maxWidth: 240, // 🔑 quebra igual no print
+  },
+
+  // =========================
+  // HISTORY LOADING
+  // =========================
+  historyLoadingHeader: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: 12,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  historyLoadingBack: {
+    width: 40,
+    height: 40,
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+
+  historyLoadingHeaderTitle: {
+    ...typography.body,
+    flex: 1,
+    textAlign: "center",
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  historyLoadingHeaderRightSpace: {
+    width: 40,
+    height: 40,
+  },
+
+  historyLoadingContent: {
+    flex: 1,
+    backgroundColor: colors.modalBackground,
+    paddingHorizontal: spacing.md,
+    paddingTop: 14,
+  },
+
+  historyLoadingMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+
+  historyLoadingMetaDate: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontSize: 11,
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+  },
+
+  historyLoadingPatientTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 20,
+    fontWeight: "600",
+    marginBottom: 16,
+  },
+
+  historyLoadingCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 22,
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 6,
+  },
+
+  historyLoadingIconWrap: {
+    width: 46,
+    height: 46,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+
+  historyLoadingTitle: {
+    ...typography.body,
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 14,
+  },
+
+  historyLoadingProgressTrack: {
+    width: "100%",
+    height: 3,
+    borderRadius: 999,
+    backgroundColor: "rgba(124,58,237,0.18)",
+    overflow: "hidden",
+    marginBottom: 14,
+  },
+
+  historyLoadingProgressFill: {
+    height: "100%",
+    width: "18%",
+    borderRadius: 999,
+    backgroundColor: colors.primary,
+  },
+
+  historyLoadingStepRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
+
+  historyLoadingStepText: {
+    ...typography.body,
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: "500",
+  },
+
+  historyLoadingHint: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+  },
+
+  historyLoadingFooter: {
+    ...typography.body,
+    marginTop: 16,
+    color: colors.textTertiary,
+    fontSize: 12,
+    textAlign: "center",
+  },
+
+  historyLoadingActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 16,
+  },
+
+  historyLoadingAdvancedButton: {
+    backgroundColor: colors.surfaceSub,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.sm,
+  },
+
+  historyLoadingAdvancedText: {
+    ...typography.body,
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.textPrimary,
+  },
+
+  historyLoadingMoreButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  historyLoadingMoreText: {
+    ...typography.body,
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.textSecondary,
+  },
+
+
+
 
 });
