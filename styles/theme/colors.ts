@@ -4,6 +4,7 @@ export const colors = {
   primaryLight: "#EDE9FE",
   primaryDark: "#6D28D9",
   primaryBlack: "#1F1F39",
+  primaryWhite: "#FFFFFF",
 
   onPrimary: "#FFFFFF",
 
@@ -25,6 +26,8 @@ export const colors = {
 
   modalBackground: "#F1F5F9",
   modalInfoBackground: "#EEF2F7",
+
+  modaShadow: "#bdbdbd",
 
 
   success: "#22C55E",
