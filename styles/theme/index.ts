@@ -1354,14 +1354,21 @@ export const globalStyles = StyleSheet.create({
   // =========================
   // HISTORY LOADING
   // =========================
+
+  loadingScreen: {
+    flex: 1,
+    backgroundColor: colors.modalBackground,
+  },
+
   historyLoadingHeader: {
-    paddingHorizontal: spacing.md,
-    paddingBottom: 12,
-    backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    flexDirection: "row",
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingBottom: 8,
     alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
   },
 
   historyLoadingBack: {
@@ -1375,9 +1382,9 @@ export const globalStyles = StyleSheet.create({
     ...typography.body,
     flex: 1,
     textAlign: "center",
-    color: colors.textPrimary,
+    color: colors.textSecondary,
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "500",
   },
 
   historyLoadingHeaderRightSpace: {
@@ -1502,17 +1509,22 @@ export const globalStyles = StyleSheet.create({
   },
 
   historyLoadingAdvancedButton: {
-    backgroundColor: colors.surfaceSub,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: radius.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 36,
+    maxWidth: 138
   },
+
 
   historyLoadingAdvancedText: {
     ...typography.body,
     fontSize: 12,
     fontWeight: "600",
-    color: colors.textPrimary,
+    color: colors.primaryWhite,
   },
 
   historyLoadingMoreButton: {
@@ -1531,6 +1543,484 @@ export const globalStyles = StyleSheet.create({
     fontWeight: "700",
     color: colors.textSecondary,
   },
+
+  historyReadyWrap: {
+    gap: 16,
+  },
+
+  historyReadyCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 18,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4,
+  },
+
+  historyReadyCardTitle: {
+    ...typography.body,
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+
+  historyReadyCardBody: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  historyReadyCardBodyMuted: {
+    color: colors.textTertiary,
+    fontStyle: "italic",
+  },
+
+  historyReadyActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 12,
+  },
+
+  historyReadyActionButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: colors.surface,
+  },
+
+  historyReadyActionText: {
+    ...typography.body,
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.textSecondary,
+  },
+
+  // =========================
+  // CONTEXT MENU (modalzinho)
+  // =========================
+  contextMenuBackdrop: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
+
+  contextMenuCard: {
+    position: "absolute",
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+
+    elevation: 8,
+
+    paddingVertical: 6,
+    overflow: "hidden",
+  },
+
+  contextMenuRow: {
+    height: 42,
+    paddingHorizontal: spacing.md,
+    justifyContent: "center",
+  },
+
+  contextMenuRowPressed: {
+    backgroundColor: colors.surfaceMuted,
+  },
+
+  contextMenuRowDisabled: {
+    opacity: 0.6,
+  },
+
+  contextMenuRowContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  contextMenuIconSlot: {
+    width: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  contextMenuLabel: {
+    ...typography.body,
+    fontSize: 14,
+    fontWeight: "500",
+    color: colors.textTertiary,
+  },
+
+  // =========================
+  // ADVANCED ACTIONS MODAL (bottom sheet) - 1:1 COM O PRINT
+  // =========================
+  advancedActionsBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(139, 108, 246, 0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  advancedActionsSheet: {
+    width: "96%",
+    marginBottom: spacing.md,
+
+    backgroundColor: colors.primaryWhite,
+    borderRadius: radius.lg,
+    overflow: "hidden",
+
+    elevation: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+
+  advancedActionsHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  advancedActionsTitle: {
+    ...typography.body,
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.textPrimary,
+  },
+
+  advancedActionsCloseBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  advancedActionsCloseBtnPressed: {
+    backgroundColor: colors.surfaceMuted,
+  },
+
+  advancedActionsDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    opacity: 0.9,
+  },
+
+  advancedActionsList: {
+    paddingVertical: 0,
+  },
+
+  advancedActionsItem: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.primaryWhite,
+  },
+
+  advancedActionsItemPressed: {
+    backgroundColor: colors.surfaceMuted,
+  },
+
+  advancedActionsItemLeft: {
+    flex: 1,
+    paddingRight: spacing.md,
+  },
+
+  advancedActionsItemTitle: {
+    ...typography.body,
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.textSecondary,
+    marginBottom: 3,
+  },
+
+  advancedActionsItemSubtitle: {
+    ...typography.body,
+    fontSize: 12,
+    color: colors.textTertiary,
+    lineHeight: 16,
+  },
+
+  advancedActionsChevron: {
+    width: 24,
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+
+  advancedActionsBottomSafe: {
+    height: 8,
+  },
+
+  // styles/theme.ts (adicione esta SESSÃO dentro do globalStyles)
+  historyScreen: {
+    flex: 1,
+    backgroundColor: colors.modalBackground,
+  },
+
+  historyHeader: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: 12,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  historyHeaderTitle: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+
+  historyScroll: {
+    flex: 1,
+  },
+
+  historyDate: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 12,
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+    marginBottom: 10,
+  },
+
+  historyItem: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 18,
+  },
+
+  historyItemPressed: {
+    backgroundColor: colors.surfaceMuted,
+  },
+
+  historyItemTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    marginBottom: 6,
+  },
+
+  historyItemLeftTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+    minWidth: 0,
+  },
+
+  historyItemTitle: {
+    ...typography.body,
+    color: colors.primaryBlack,
+    fontSize: 13,
+    fontWeight: "700",
+    flexShrink: 1,
+  },
+
+  historyBadge: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 999,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+
+  historyBadgeText: {
+    ...typography.body,
+    color: colors.surfaceSub,
+    fontSize: 10,
+    fontWeight: "600",
+  },
+
+  historyItemTime: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 11,
+    fontWeight: "600",
+  },
+
+  historyItemSubtitle: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+
+  historyDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    opacity: 0.9,
+  },
+
+  historyContent: {
+    paddingHorizontal: spacing.md,
+    paddingTop: 12,
+    paddingBottom: 18,
+    gap: 12,
+  },
+
+  historyGroupCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
+    shadowColor: colors.modaShadow,
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4,
+    marginTop: 8
+  },
+
+  historyGroupTopStrip: {
+    backgroundColor: colors.surfaceMuted,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 15,
+  },
+
+  historyGroupTopStripText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 12,
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+  },
+
+  // =========================
+  //EditPacientModal
+  // =========================
+
+  editPatientBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(139, 108, 246, 0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  editPatientBackdropPressable: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  editPatientSheet: {
+    width: "92%",
+    backgroundColor: colors.primaryWhite,
+    borderRadius: radius.lg,
+    overflow: "hidden",
+    elevation: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  editPatientHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  editPatientTitle: {
+    ...typography.body,
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.textPrimary,
+  },
+
+  editPatientCloseBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  editPatientCloseBtnPressed: {
+    backgroundColor: colors.surfaceMuted,
+  },
+
+  editPatientCloseIcon: {
+    ...typography.body,
+    fontSize: 18,
+    fontWeight: "700",
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+
+  editPatientDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    opacity: 0.9,
+  },
+
+  editPatientBody: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
+  },
+
+  editPatientLabel: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 12,
+    marginBottom: 6,
+    marginTop: 10,
+    opacity: 0.9,
+  },
+
+  editPatientInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: colors.surface,
+    ...typography.body,
+    color: colors.textPrimary,
+  },
+
+  editPatientPlaceholder: {
+    color: colors.textDisabled,
+  },
+
+  editPatientFooter: {
+    marginTop: 22,
+    alignItems: "flex-end",
+  },
+
+  editPatientSaveButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: radius.sm,
+  },
+
+  editPatientSaveButtonPressed: {
+    opacity: 0.9,
+  },
+
+  editPatientSaveText: {
+    ...typography.body,
+    color: colors.onPrimary,
+    fontWeight: "800",
+    fontSize: 12,
+  },
+
 
 
 

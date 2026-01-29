@@ -129,6 +129,65 @@ const pt = {
     advancedActions: "Ações Avançadas",
   },
 
+  historyTranscription: {
+    summaryTitle: "Resumo para o Prontuário",
+    summaryEmpty: "Não há informações clínicas relevantes para inclusão no prontuário veterinário nesta transcrição.",
+    edit: "Editar",
+    copy: "Copiar",
+    messageTitle: "Mensagem para o Responsável",
+    messageGreeting: "Olá! Tudo bem?",
+    messageDefaultBody:
+      "Aqui é o Dr. Théo, médico-veterinário.\n\n" +
+      "Estou entrando em contato para reforçar que sigo totalmente à disposição para esclarecer qualquer dúvida, oferecer orientações adicionais ou ajudar no que for necessário em relação à saúde e ao bem-estar do seu animalzinho.\n\n" +
+      "Neste momento, não há informações clínicas específicas ou orientações de tratamento a serem repassadas, pois a gravação recebida não continha dados objetivos sobre o paciente, como sinais clínicos, diagnóstico, exames ou condutas recomendadas.\n\n" +
+      "Assim que houver novas informações ou, caso você deseje complementar com mais detalhes, ficarei feliz em analisar e orientar da melhor forma possível.\n\n" +
+      "Sempre que precisar, conte comigo para cuidar do seu pet com atenção, responsabilidade e carinho."
+
+  },
+
+  advancedActionsModal: {
+    title: "Ações Avançadas",
+    messageResponsibleTitle: "Mensagem para o Responsável",
+    messageResponsibleSubtitle: "Prepara uma mensagem para o responsável",
+    referralOtherProfessionalTitle: "Encaminhamento para Outro Profissional",
+    referralOtherProfessionalSubtitle: "Criar carta de encaminhamento para outro profissional",
+    thankYouReferralTitle: "Mensagem de Agradecimento pelo Encaminhamento feito por Profissional",
+    thankYouReferralSubtitle: "Cria uma mensagem para um profissional que indicou o paciente",
+    examResultsTitle: "Resultado de Exames",
+    examResultsSubtitle: "Resume e formata os exames da consulta"
+  },
+
+  history: {
+    headerTitle: "Histórico",
+    dateNov10_2025: "10 DE NOVEMBRO DE 2025",
+    badgeExample: "Paciente Exemplo",
+    time_2302: "23:02",
+    time_2138: "21:38",
+    unidentifiedTitle: "Paciente não identificado",
+    unidentifiedSubtitle: "Transcrição confusa; usuário descreve envio gradual de áudio/file enviado em blocos de 16s, com paus...",
+    biscotoTitle: "Biscoto",
+    biscotoSubtitle: "Coelho de 3 anos, com dispneia, ↓ apetite e ↓ atividade. Exame físico: secreção nasal/ocular, ...",
+    lunaTitle: "Luna",
+    lunaSubtitle: "Gata persa, 2 anos. Sinais: lambedura excessiva, alopecia, dermatite. Exame físico: peso adequado, ...",
+    maxTitle: "Max",
+    maxSubtitle: "Golden, 5 anos, apatia, perda de apetite, vômito (3d). Exame: desidratação leve, mucosas...",
+  },
+
+  editPatient: {
+    title: "Editar",
+    patientNameLabel: "Nome do Paciente",
+    patientNamePlaceholder: "",
+    responsibleNameLabel: "Nome do Responsável",
+    responsibleNamePlaceholder: "",
+    save: "Salvar",
+  },
+
+  confirmDelete: {
+    title: "Tem certeza? Essa ação não pode ser desfeita.",
+    message: "",
+    cancel: "Cancelar",
+    confirm: "Aceitar",
+  },
 
 
   common: {

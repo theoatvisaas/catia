@@ -29,6 +29,7 @@ export default function NewRecordScreen() {
         if (!uploading) return;
 
         const timer = setTimeout(() => {
+            setUploading(false);
             router.replace("/history/loading");
         }, 2000);
 

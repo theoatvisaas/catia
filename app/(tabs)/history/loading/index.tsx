@@ -1,19 +1,43 @@
+import AdvancedActionsModal from "@/components/app/history/AdvancedActionsModal";
+import { ContextMenu } from "@/components/app/history/ContextMenu";
+import { confirmDeleteTranscription } from "@/components/app/history/DelTranscription";
+import EditPatientModal from "@/components/app/history/EditPacientModal";
+import PreparingReports from "@/components/app/history/PreparingReports";
+import TranscriptionReady from "@/components/app/history/TranscriptionReady";
 import { t } from "@/i18n";
+
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
 import { router } from "expo-router";
-import { CheckCircle2, ChevronLeft, Sparkles } from "lucide-react-native";
-import React from "react";
-import { Pressable, Text, TouchableOpacity, View } from "react-native";
+import { ChevronLeft, Pencil, Trash2, Volume2, Wand } from "lucide-react-native";
+import React, { useState } from "react";
+import {
+    LayoutRectangle,
+    Pressable,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function HistoryLoadingScreen() {
     const insets = useSafeAreaInsets();
+    const [preparing, setPreparing] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [anchorRect, setAnchorRect] = useState<LayoutRectangle | null>(null);
+    const [advancedActionsOpen, setAdvancedActionsOpen] = useState(false);
+    const [editPatientOpen, setEditPatientOpen] = useState(false);
+
 
     return (
-        <View style={globalStyles.screen}>
-            <View style={[globalStyles.historyLoadingHeader, { paddingTop: Math.max(insets.top, 10) }]}>
-                <Pressable onPress={() => router.back()} style={globalStyles.historyLoadingBack}>
+        <View style={globalStyles.loadingScreen}>
+            <View
+                style={[globalStyles.historyLoadingHeader, { paddingTop: Math.max(insets.top, 10) }]}>
+                <Pressable
+                    onPress={() => router.back()}
+                    style={globalStyles.historyLoadingBack}
+                >
                     <ChevronLeft size={22} color={colors.textSecondary} />
                 </Pressable>
 
@@ -24,7 +48,12 @@ export default function HistoryLoadingScreen() {
                 <View style={globalStyles.historyLoadingHeaderRightSpace} />
             </View>
 
-            <View style={globalStyles.historyLoadingContent}>
+            <ScrollView
+                style={globalStyles.historyLoadingContent}
+                contentContainerStyle={{ paddingBottom: 16 + insets.bottom }}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
                 <View style={globalStyles.historyLoadingMetaRow}>
                     <Text style={globalStyles.historyLoadingMetaDate}>
                         {t("historyLoading", "metaDate")}
@@ -36,50 +65,95 @@ export default function HistoryLoadingScreen() {
                 </Text>
 
                 <View style={globalStyles.historyLoadingActionsRow}>
-                    <Pressable style={globalStyles.historyLoadingAdvancedButton}>
+                    <TouchableOpacity
+                        onPress={() => setAdvancedActionsOpen(true)}
+                        style={[
+                            globalStyles.historyLoadingAdvancedButton,
+                            {
+                                backgroundColor: preparing
+                                    ? colors.surfaceSub
+                                    : colors.primary,
+                            },
+                        ]}
+                    >
+                        <Wand
+                            size={16}
+                            color={colors.primaryWhite}
+                            style={{ marginRight: 6 }}
+                        />
 
                         <Text style={globalStyles.historyLoadingAdvancedText}>
                             {t("historyLoading", "advancedActions")}
                         </Text>
-                    </Pressable>
+                    </TouchableOpacity>
 
-                    <TouchableOpacity style={globalStyles.historyLoadingMoreButton}>
+                    <TouchableOpacity onPress={() => setOpen(true)} style={globalStyles.historyLoadingMoreButton}>
                         <Text style={globalStyles.historyLoadingMoreText}>•••</Text>
                     </TouchableOpacity>
                 </View>
 
+                {preparing ? (
+                    <PreparingReports />
+                ) : (
+                    <TranscriptionReady />
+                )}
 
-                <View style={globalStyles.historyLoadingCard}>
-                    <View style={globalStyles.historyLoadingIconWrap}>
-                        <Sparkles size={28} color={colors.primary} />
-                    </View>
-
-                    <Text style={globalStyles.historyLoadingTitle}>
-                        {t("historyLoading", "title")}
-                    </Text>
-
-                    <View style={globalStyles.historyLoadingProgressTrack}>
-                        <View style={globalStyles.historyLoadingProgressFill} />
-                    </View>
-
-                    <View style={globalStyles.historyLoadingStepRow}>
-                        <Text style={globalStyles.historyLoadingStepText}>
-                            {t("historyLoading", "step")}
-                        </Text>
-                        <CheckCircle2 size={16} color={colors.success} />
-                    </View>
-
-                    <Text style={globalStyles.historyLoadingHint}>
-                        {t("historyLoading", "hint")}
-                    </Text>
-                </View>
 
                 <TouchableOpacity onPress={() => { }}>
                     <Text style={globalStyles.historyLoadingFooter}>
                         {t("historyLoading", "footer")}
                     </Text>
                 </TouchableOpacity>
-            </View>
+            </ScrollView>
+
+            <ContextMenu
+                visible={open}
+                onClose={() => setOpen(false)}
+                anchorRect={anchorRect}
+                items={[
+                    {
+                        key: "edit",
+                        label: "Editar",
+                        onPress: () => setEditPatientOpen(true),
+                        icon: <Pencil size={16} color={colors.textTertiary} />,
+                    },
+                    {
+                        key: "listen",
+                        label: "Ouvir Gravação",
+                        onPress: () => console.log("Ouvir"),
+                        icon: <Volume2 size={16} color={colors.textTertiary} />,
+                    },
+                    {
+                        key: "delete",
+                        label: "Excluir Transcrição",
+                        onPress: () =>
+                            confirmDeleteTranscription({
+                                onConfirm: () => {
+                                },
+                            }),
+                        icon: <Trash2 size={16} color={colors.textTertiary} />,
+                        danger: true,
+                    }
+                ]}
+            />
+
+            <AdvancedActionsModal
+                visible={advancedActionsOpen}
+                onClose={() => setAdvancedActionsOpen(false)}
+                onSelect={(action) => {
+                    setAdvancedActionsOpen(false);
+                }}
+            />
+
+            <EditPatientModal
+                visible={editPatientOpen}
+                onClose={() => setEditPatientOpen(false)}
+                onSave={(data) => {
+                    console.log(data);
+                    setEditPatientOpen(false);
+                }}
+            />
+
         </View>
     );
 }
