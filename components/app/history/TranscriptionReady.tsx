@@ -2,6 +2,8 @@
 
 import { t } from "@/i18n";
 import { globalStyles } from "@/styles/theme";
+import { colors } from "@/styles/theme/colors";
+import { Copy, Pencil, Printer } from "lucide-react-native";
 import React, { useMemo } from "react";
 import { Share, Text, TouchableOpacity, View } from "react-native";
 
@@ -82,17 +84,48 @@ export default function TranscriptionReady({
                     {messageValue}
                 </Text>
 
-                <View style={globalStyles.historyReadyActionsRow}>
+                <View style={globalStyles.historyReadyActionsWrap}>
+                    <TouchableOpacity
+                        onPress={onEditSummary}
+                        style={globalStyles.historyReadyActionButton}
+                        activeOpacity={0.85}
+                    >
+                        <View style={globalStyles.historyReadyActionContent}>
+                            <Pencil size={16} color={colors.textSecondary} />
+                            <Text style={globalStyles.historyReadyActionText}>
+                                {t("historyTranscription", "editEnd")}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                         onPress={() => handleShare(messageValue)}
                         style={globalStyles.historyReadyActionButton}
                         activeOpacity={0.85}
                     >
-                        <Text style={globalStyles.historyReadyActionText}>
-                            {t("historyTranscription", "copy")}
-                        </Text>
+                        <View style={globalStyles.historyReadyActionContent}>
+                            <Copy size={16} color={colors.textSecondary} />
+                            <Text style={globalStyles.historyReadyActionText}>
+                                {t("historyTranscription", "copy")}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => handleShare(messageValue)}
+                        style={globalStyles.historyReadyActionButton}
+                        activeOpacity={0.85}
+                    >
+                        <View style={globalStyles.historyReadyActionContent}>
+                            <Printer size={16} color={colors.textSecondary} />
+                            <Text style={globalStyles.historyReadyActionText}>
+                                {t("historyTranscription", "print")}
+                            </Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
+
+
             </View>
         </View>
     );
