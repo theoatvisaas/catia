@@ -141,7 +141,9 @@ const pt = {
       "Estou entrando em contato para reforçar que sigo totalmente à disposição para esclarecer qualquer dúvida, oferecer orientações adicionais ou ajudar no que for necessário em relação à saúde e ao bem-estar do seu animalzinho.\n\n" +
       "Neste momento, não há informações clínicas específicas ou orientações de tratamento a serem repassadas, pois a gravação recebida não continha dados objetivos sobre o paciente, como sinais clínicos, diagnóstico, exames ou condutas recomendadas.\n\n" +
       "Assim que houver novas informações ou, caso você deseje complementar com mais detalhes, ficarei feliz em analisar e orientar da melhor forma possível.\n\n" +
-      "Sempre que precisar, conte comigo para cuidar do seu pet com atenção, responsabilidade e carinho."
+      "Sempre que precisar, conte comigo para cuidar do seu pet com atenção, responsabilidade e carinho.",
+    print: "Imprimir",
+    editEnd: "Editar",
 
   },
 
@@ -187,6 +189,35 @@ const pt = {
     message: "",
     cancel: "Cancelar",
     confirm: "Aceitar",
+  },
+
+  transcription: {
+    headerTitle: "Transcrição",
+
+    modeLabel: "Modo da Gravação",
+    modeValue: "Consulta Veterinária",
+
+    createdByLabel: "Criado por",
+    createdByValue: "Théo",
+
+    createdAtLabel: "Criado em",
+    createdAtValue: "21 de Janeiro de 2026, 20:10",
+
+    startedAtLabel: "Iniciou Gravação Em",
+    startedAtValue: "21 de Janeiro de 2026, 20:11",
+
+    finishedAtLabel: "Finalizou Gravação Em",
+    finishedAtValue: "21 de Janeiro de 2026, 20:12",
+
+    durationLabel: "Duração Total",
+    durationValue: "49 segundos",
+
+    listenTitle: "Escutar Gravação Original",
+    listenBody:
+      "Durante a gravação, nosso sistema realiza cortes automáticos no áudio para otimizar o processo de upload.",
+
+    playerTime: "21/01/2026 20:12",
+
   },
 
 

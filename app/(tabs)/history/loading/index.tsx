@@ -120,7 +120,7 @@ export default function HistoryLoadingScreen() {
                     {
                         key: "listen",
                         label: "Ouvir Gravação",
-                        onPress: () => console.log("Ouvir"),
+                        onPress: () => router.push("/history/listen-record"),
                         icon: <Volume2 size={16} color={colors.textTertiary} />,
                     },
                     {

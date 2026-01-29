@@ -390,7 +390,7 @@ export const globalStyles = StyleSheet.create({
   settingsSectionTitle: {
     ...typography.body,
     color: colors.textPrimary,
-    fontWeight: "800",
+    fontWeight: "400",
     fontSize: 16,
     marginBottom: 8,
   },
@@ -1590,14 +1590,25 @@ export const globalStyles = StyleSheet.create({
     marginTop: 12,
   },
 
+  historyReadyActionsWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    gap: 10,
+    marginTop: 12,
+  },
+
+
   historyReadyActionButton: {
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.sm,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     backgroundColor: colors.surface,
   },
+
 
   historyReadyActionText: {
     ...typography.body,
@@ -1605,6 +1616,13 @@ export const globalStyles = StyleSheet.create({
     fontWeight: "600",
     color: colors.textSecondary,
   },
+
+  historyReadyActionContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
 
   // =========================
   // CONTEXT MENU (modalzinho)
@@ -2021,6 +2039,174 @@ export const globalStyles = StyleSheet.create({
     fontSize: 12,
   },
 
+  // =========================
+  // LISTEN RECORD
+  // =========================
+
+  transcriptionScreen: {
+    flex: 1,
+    backgroundColor: colors.modalBackground,
+  },
+
+  transcriptionHeader: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: 12,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  transcriptionHeaderTitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontWeight: "500",
+    fontSize: 14,
+  },
+
+  transcriptionScroll: {
+    flex: 1,
+  },
+
+  transcriptionCard: {
+    marginHorizontal: spacing.md,
+    marginTop: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+
+    paddingHorizontal: spacing.md,
+    paddingVertical: 20,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4,
+  },
+
+
+  transcriptionMetaLabel: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+
+  transcriptionMetaTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "400",
+    marginTop: 4,
+  },
+
+  transcriptionDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    opacity: 0.9,
+    marginTop: 14,
+    marginBottom: 10,
+  },
+
+  transcriptionRow: {
+    paddingTop: 10,
+  },
+
+  transcriptionRowLast: {
+    paddingTop: 10,
+    paddingBottom: 2,
+  },
+
+  transcriptionLabel: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 12,
+    marginBottom: 4,
+  },
+
+  transcriptionValueStrong: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: "400",
+  },
+
+  transcriptionSectionTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: "400",
+    fontSize: 13,
+    marginBottom: 14,
+  },
+
+  transcriptionListenText: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center",
+    paddingHorizontal: spacing.md,
+    marginBottom: 28,
+  },
+
+  transcriptionPlayerBlock: {
+    marginTop: 14,
+    marginBottom: 10,
+  },
+
+  transcriptionPlayerTime: {
+    ...typography.body,
+    color: colors.textTertiary,
+    fontSize: 11,
+    marginBottom: 10,
+  },
+
+  transcriptionPlayerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  transcriptionPlayerButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  transcriptionPlayerButtonPressed: {
+    opacity: 0.92,
+  },
+
+  transcriptionSliderTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: colors.primaryLight,
+    position: "relative",
+    overflow: "visible",
+  },
+
+  transcriptionSliderFill: {
+    height: "100%",
+    borderRadius: 999,
+    backgroundColor: colors.primary,
+  },
+
+  transcriptionSliderThumb: {
+    position: "absolute",
+    top: -4,
+    width: 14,
+    height: 14,
+    borderRadius: 999,
+    backgroundColor: colors.primary,
+    marginLeft: -7,
+  },
 
 
 
