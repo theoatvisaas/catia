@@ -2208,7 +2208,499 @@ export const globalStyles = StyleSheet.create({
     marginLeft: -7,
   },
 
+  // =========================
+  // EDIT TRANSCRIPTION (modal editor) - réplica do print
+  // =========================
+  editTranscriptionBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(139, 108, 246, 0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 
+  editTranscriptionBackdropPressable: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  editTranscriptionSheet: {
+    width: "92%",
+    maxHeight: "86%",
+    backgroundColor: colors.primaryWhite,
+    borderRadius: radius.lg,
+    overflow: "hidden",
+    elevation: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  editTranscriptionHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  editTranscriptionTitle: {
+    ...typography.body,
+    fontSize: 14,
+    fontWeight: "500",
+    color: colors.textSecondary,
+  },
+
+  editTranscriptionCloseBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  editTranscriptionCloseBtnPressed: {
+    backgroundColor: colors.surfaceMuted,
+  },
+
+  editTranscriptionCloseIcon: {
+    ...typography.body,
+    fontSize: 18,
+    fontWeight: "700",
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+
+  editTranscriptionDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    opacity: 0.9,
+  },
+
+  editTranscriptionEditorCard: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
+    overflow: "hidden",
+  },
+
+  editTranscriptionToolbar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    backgroundColor: colors.surface,
+  },
+
+  editTranscriptionToolBtn: {
+    minWidth: 26,
+    height: 22,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  editTranscriptionToolBtnActive: {
+    backgroundColor: colors.surfaceMuted,
+  },
+
+  editTranscriptionToolBtnPressed: {
+    opacity: 0.9,
+  },
+
+  editTranscriptionToolText: {
+    ...typography.body,
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.primary,
+  },
+
+  editTranscriptionToolTextActive: {
+    color: colors.primary,
+  },
+
+  editTranscriptionEditorDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    opacity: 0.9,
+  },
+
+  editTranscriptionEditorScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+    maxHeight: undefined as any,
+  },
+
+  editTranscriptionEditorContent: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+  },
+
+  editTranscriptionInput: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 12,
+    lineHeight: 18,
+    minHeight: 260,
+  },
+
+  editTranscriptionFooter: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: 14,
+    paddingBottom: spacing.lg,
+    alignItems: "flex-end",
+  },
+
+  editTranscriptionSaveButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: radius.sm,
+  },
+
+  editTranscriptionSaveButtonDisabled: {
+    opacity: 0.55,
+  },
+
+  editTranscriptionSaveButtonPressed: {
+    opacity: 0.92,
+  },
+
+  editTranscriptionSaveText: {
+    ...typography.body,
+    color: colors.onPrimary,
+    fontWeight: "800",
+    fontSize: 12,
+  },
+
+  // =========================
+  // EXAMPLE SCREEN (Transcrição - exemplo do print)
+  // =========================
+  exampleScreen: {
+    flex: 1,
+    backgroundColor: colors.modalBackground,
+  },
+
+  exampleHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.primaryWhite, // header continua branco
+    paddingHorizontal: spacing.md,
+    paddingBottom: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+  },
+
+  exampleHeaderBack: {
+    width: 40,
+    height: 40,
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+
+  exampleHeaderTitle: {
+    ...typography.body,
+    flex: 1,
+    textAlign: "center",
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+
+  exampleHeaderRightSpace: {
+    width: 40,
+    height: 40,
+  },
+
+  exampleScroll: {
+    flex: 1,
+  },
+
+  exampleContent: {
+    paddingHorizontal: spacing.md,
+    paddingTop: 40,
+  },
+
+  examplePatientRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 14,
+  },
+
+  examplePatientName: {
+    ...typography.body,
+    color: colors.primaryBlack,
+    fontSize: 20,
+    fontWeight: "700",
+  },
+
+  examplePatientBadge: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: 999,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+
+  examplePatientBadgeText: {
+    ...typography.body,
+    color: colors.textsurfaceSub,
+    fontSize: 12,
+    fontWeight: "400",
+  },
+
+  // Audio card (roxo grande)
+  exampleAudioCard: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+    marginTop: 10
+  },
+
+  exampleAudioCardPressed: {
+    opacity: 0.92,
+  },
+
+  exampleAudioLeft: {
+    width: 46,
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+
+  exampleAudioPlayCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    backgroundColor: colors.primaryWhite,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  exampleAudioBody: {
+    flex: 1,
+    minWidth: 0,
+    top: 8
+  },
+
+  exampleAudioTitle: {
+    ...typography.body,
+    color: colors.primaryWhite,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  exampleAudioSubtitle: {
+    ...typography.body,
+    color: colors.primaryWhite,
+    opacity: 0.85,
+    fontSize: 11,
+    marginTop: 2,
+  },
+
+  exampleAudioDotRow: {
+    marginTop: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  exampleAudioDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: colors.primaryWhite,
+    opacity: 0.9,
+  },
+
+  exampleIntroText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: "500",
+    textAlign: "center",
+    lineHeight: 18,
+    marginTop: 2,
+    marginBottom: 12,
+    alignSelf: "center",
+    maxWidth: 380,
+  },
+
+  exampleList: {
+    gap: 26,
+    marginBottom: 22,
+    paddingVertical: 20,
+  },
+
+  exampleListRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  exampleListText: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "300",
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+
+  // Section header + badge “Em 80 segundos!”
+  exampleSectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+
+  exampleSectionTitle: {
+    ...typography.body,
+    color: colors.primary,
+    fontSize: 18,
+    fontWeight: "700",
+  },
+
+  exampleSectionBadgeWrap: {
+    position: "absolute",
+    right: -6,  
+    top: -10,   
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+
+  exampleSectionBadge: {
+    backgroundColor: colors.primary,
+    borderRadius: radius.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    transform: [{ rotate: "-12deg" }],
+  },
+
+  exampleSectionBadgeText: {
+    ...typography.body,
+    color: colors.primaryWhite,
+    fontSize: 10,
+    fontWeight: "700",
+  },
+
+  exampleSectionBadgeSpark1: {
+    position: "absolute",
+    right: 2,
+    top: -10,
+    width: 10,
+    height: 2,
+    borderRadius: 999,
+    backgroundColor: colors.warning,
+    transform: [{ rotate: "20deg" }],
+  },
+
+  exampleSectionBadgeSpark2: {
+    position: "absolute",
+    right: -6,
+    top: -2,
+    width: 10,
+    height: 2,
+    borderRadius: 999,
+    backgroundColor: colors.warning,
+    transform: [{ rotate: "65deg" }],
+  },
+
+  exampleSectionBadgeSpark3: {
+    position: "absolute",
+    right: 6,
+    top: -4,
+    width: 8,
+    height: 2,
+    borderRadius: 999,
+    backgroundColor: colors.warning,
+    transform: [{ rotate: "-20deg" }],
+  },
+
+  exampleSectionBody: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontSize: 14,
+    lineHeight: 18,
+  },
+
+  exampleSectionCard: {
+    backgroundColor: colors.primaryWhite,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+    overflow: "visible",
+  },
+
+  // =========================
+// FORGOT PASSWORD
+// =========================
+forgotHeader: {
+  alignItems: "center",
+  marginBottom: 18,
+},
+
+forgotLogoWrap: {
+  flexDirection: "row",
+  alignItems: "flex-start",
+  justifyContent: "center",
+  marginBottom: 14,
+},
+
+forgotLogoBar: {
+  borderRadius: 999,
+  opacity: 0.9,
+},
+
+forgotTitle: {
+  ...typography.body,
+  color: colors.textPrimary,
+  fontWeight: "800",
+  fontSize: 22,
+  lineHeight: 26,
+  textAlign: "center",
+  marginBottom: 8,
+},
+
+forgotSubtitle: {
+  ...typography.body,
+  color: colors.textSecondary,
+  fontSize: 12,
+  lineHeight: 16,
+  textAlign: "center",
+  paddingHorizontal: spacing.lg,
+},
+
+forgotPrimaryButton: {
+  backgroundColor: colors.primary,
+  paddingVertical: 12,
+  borderRadius: 12,
+  alignItems: "center",
+  marginTop: 10,
+},
+
+forgotPrimaryButtonText: {
+  ...typography.body,
+  color: colors.onPrimary,
+  fontWeight: "800",
+  fontSize: 12,
+},
+
+forgotLinkRow: {
+  flexDirection: "row",
+  justifyContent: "center",
+  alignItems: "center",
+  marginTop: 14,
+},
 
 
 });

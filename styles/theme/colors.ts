@@ -18,6 +18,7 @@ export const colors = {
   textSecondary: "#6B7280",
   textTertiary: "#8B8FA6",
   textDisabled: "#9CA3AF",
+  textsurfaceSub: "#6F88A5",
 
 
   border: "#E5E7EB",
