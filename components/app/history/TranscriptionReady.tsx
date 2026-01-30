@@ -3,9 +3,13 @@
 import { t } from "@/i18n";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
+import * as Clipboard from "expo-clipboard";
+import * as Print from "expo-print";
 import { Copy, Pencil, Printer } from "lucide-react-native";
 import React, { useMemo } from "react";
-import { Share, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+
+
 
 type Props = {
     summaryText?: string;
@@ -28,9 +32,46 @@ export default function TranscriptionReady({
         [messageText]
     );
 
-    async function handleShare(text: string) {
-        await Share.share({ message: text });
+    async function handleCopy(text: string) {
+        await Clipboard.setStringAsync(text);
+        Alert.alert(
+            t("historyTranscription", "copySuccessTitle"),
+            t("historyTranscription", "copySuccessSubtitle"),
+            [{ text: "OK" }]
+        );
     }
+
+    async function handlePrint(text: string) {
+        const html = `
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+          body { font-family: -apple-system, system-ui, Arial; padding: 24px; }
+          h1 { font-size: 18px; margin: 0 0 16px 0; }
+          p { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+        </style>
+      </head>
+      <body>
+        <h1>${t("historyTranscription", "printTitle")}</h1>
+        <p>${escapeHtml(text)}</p>
+      </body>
+    </html>
+                    `;
+
+        await Print.printAsync({ html });
+    }
+
+    function escapeHtml(input: string) {
+        return input
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
 
     return (
         <View style={globalStyles.historyReadyWrap}>
@@ -60,7 +101,7 @@ export default function TranscriptionReady({
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        onPress={() => handleShare(summaryValue)}
+                        onPress={() => handleCopy(messageValue)}
                         style={globalStyles.historyReadyActionButton}
                         activeOpacity={0.85}
                     >
@@ -99,7 +140,7 @@ export default function TranscriptionReady({
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        onPress={() => handleShare(messageValue)}
+                        onPress={() => handleCopy(messageValue)}
                         style={globalStyles.historyReadyActionButton}
                         activeOpacity={0.85}
                     >
@@ -111,8 +152,9 @@ export default function TranscriptionReady({
                         </View>
                     </TouchableOpacity>
 
+
                     <TouchableOpacity
-                        onPress={() => handleShare(messageValue)}
+                        onPress={() => handlePrint(messageValue)}
                         style={globalStyles.historyReadyActionButton}
                         activeOpacity={0.85}
                     >
@@ -123,6 +165,7 @@ export default function TranscriptionReady({
                             </Text>
                         </View>
                     </TouchableOpacity>
+
                 </View>
 
 

@@ -2,6 +2,7 @@ import AdvancedActionsModal from "@/components/app/history/AdvancedActionsModal"
 import { ContextMenu } from "@/components/app/history/ContextMenu";
 import { confirmDeleteTranscription } from "@/components/app/history/DelTranscription";
 import EditPatientModal from "@/components/app/history/EditPacientModal";
+import EditTranscription from "@/components/app/history/EditTranscription";
 import PreparingReports from "@/components/app/history/PreparingReports";
 import TranscriptionReady from "@/components/app/history/TranscriptionReady";
 import { t } from "@/i18n";
@@ -28,6 +29,9 @@ export default function HistoryLoadingScreen() {
     const [anchorRect, setAnchorRect] = useState<LayoutRectangle | null>(null);
     const [advancedActionsOpen, setAdvancedActionsOpen] = useState(false);
     const [editPatientOpen, setEditPatientOpen] = useState(false);
+    const [editTranscriptionOpen, setEditTranscriptionOpen] = useState(false);
+    const [editableText, setEditableText] = useState("");
+
 
 
     return (
@@ -95,7 +99,12 @@ export default function HistoryLoadingScreen() {
                 {preparing ? (
                     <PreparingReports />
                 ) : (
-                    <TranscriptionReady />
+                    <TranscriptionReady
+                        onEditSummary={() => {
+                            setEditableText(t("historyTranscription", "messageDefaultBody"));
+                            setEditTranscriptionOpen(true);
+                        }}
+                    />
                 )}
 
 
@@ -153,6 +162,19 @@ export default function HistoryLoadingScreen() {
                     setEditPatientOpen(false);
                 }}
             />
+
+            <EditTranscription
+                visible={editTranscriptionOpen}
+                initialText={editableText}
+                onClose={() => setEditTranscriptionOpen(false)}
+                onSave={(text) => {
+
+                    setEditableText(text);
+                    setEditTranscriptionOpen(false);
+                }}
+            />
+
+
 
         </View>
     );

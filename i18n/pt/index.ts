@@ -21,6 +21,12 @@ const pt = {
     signupButton: "Criar conta",
     haveAccount: "Já tem uma conta? ",
     signin: "Entrar",
+
+    forgotTitle: "Esqueceu sua senha?",
+    forgotSubtitle: "Digite seu e-mail e enviaremos um link para redefinir sua senha.",
+    forgotSendLink: "Enviar link para redefinir senha",
+    forgotHaveAccount: "Já tem uma conta? ",
+    forgotNoAccount: "Ainda não tem uma conta? "
   },
 
   settings: {
@@ -145,6 +151,14 @@ const pt = {
     print: "Imprimir",
     editEnd: "Editar",
 
+    editTitle: "Editar",
+    editPlaceholder: "Digite aqui...",
+    save: "Salvar",
+    copySuccessTitle: "Copiado!",
+    copySuccessSubtitle: "O texto foi copiado para a área de transferência.",
+
+    printTitle: "Transcrição",
+
   },
 
   advancedActionsModal: {
@@ -218,6 +232,28 @@ const pt = {
 
     playerTime: "21/01/2026 20:12",
 
+  },
+
+  historyExample: {
+    headerTitle: "Transcrição",
+
+    patientName: "Biscoito",
+    patientBadge: "Paciente Exemplo",
+
+    listenOriginalTitle: "Escutar Gravação Original",
+    listenOriginalDuration: "(1 minuto e 30 segundos)",
+
+    intro: "O Dr. Assistente analisou a gravação e preparou esses relatórios:",
+
+    item1: "Transcrição Revisada",
+    item2: "Texto Estruturado para o Prontuário",
+    item3: "Encaminhamento para outro Profissional",
+    item4: "Mensagem para o Tutor",
+
+    sectionTitle: "Transcrição Revisada",
+    sectionBadge: "Em 80\nsegundos!",
+    sectionBody:
+      "O paciente é um coelho de estimação chamado Biscoito, com 3 anos de idade, trazido ao consultório pelo tutor, o senhor Ricardo Ferreira. Durante o atendimento, o tutor relatou preocupações relacionadas ao comportamento e ao estado geral de saúde do animal, buscando orientação veterinária especializada. O paciente encontrava-se alerta, responsivo e em condições gerais estáveis no momento da avaliação. A consulta teve como objetivo principal esclarecer as queixas apresentadas, orientar quanto aos cuidados adequados e avaliar a necessidade de exames complementares ou condutas futuras, conforme a evolução do quadro clínico."
   },
 
 

@@ -97,7 +97,9 @@ export default function Login() {
           <Text style={globalStyles.linkStrong}>{t("auth", "signUp")}</Text>
         </Pressable>
 
-        <Pressable style={globalStyles.forgotWrap}>
+        <Pressable style={globalStyles.forgotWrap}
+          onPress={() => router.replace("/forgot-password")}
+        >
           <Text style={globalStyles.linkStrong}>
             {t("auth", "forgotPassword")}
           </Text>

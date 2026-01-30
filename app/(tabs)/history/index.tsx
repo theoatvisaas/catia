@@ -81,35 +81,43 @@ export default function History() {
                                 <Text style={globalStyles.historyGroupTopStripText}>{group.dateLabel}</Text>
                             </View>
 
-                            {group.items.map((it, idx) => (
-                                <View key={it.id}>
-                                    <Pressable
-                                        onPress={() => router.push("/history/loading")}
-                                        style={({ pressed }) => [
-                                            globalStyles.historyItem,
-                                            pressed && globalStyles.historyItemPressed,
-                                        ]}
-                                    >
-                                        <View style={globalStyles.historyItemTopRow}>
-                                            <View style={globalStyles.historyItemLeftTop}>
-                                                <Text style={globalStyles.historyItemTitle}>{it.name}</Text>
+                            {group.items.map((it, idx) => {
 
-                                                {!!it.badge && (
-                                                    <View style={globalStyles.historyBadge}>
-                                                        <Text style={globalStyles.historyBadgeText}>{it.badge}</Text>
-                                                    </View>
-                                                )}
+                                const targetRoute =
+                                    it.id === "unidentified-2302"
+                                        ? "/history/loading"
+                                        : "/history/example";
+
+                                return (
+                                    <View key={it.id}>
+                                        <Pressable
+                                            onPress={() => router.push(targetRoute)}
+                                            style={({ pressed }) => [
+                                                globalStyles.historyItem,
+                                                pressed && globalStyles.historyItemPressed,
+                                            ]}
+                                        >
+                                            <View style={globalStyles.historyItemTopRow}>
+                                                <View style={globalStyles.historyItemLeftTop}>
+                                                    <Text style={globalStyles.historyItemTitle}>{it.name}</Text>
+
+                                                    {!!it.badge && (
+                                                        <View style={globalStyles.historyBadge}>
+                                                            <Text style={globalStyles.historyBadgeText}>{it.badge}</Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+
+                                                <Text style={globalStyles.historyItemTime}>{it.time}</Text>
                                             </View>
 
-                                            <Text style={globalStyles.historyItemTime}>{it.time}</Text>
-                                        </View>
+                                            <Text style={globalStyles.historyItemSubtitle}>{it.description}</Text>
+                                        </Pressable>
 
-                                        <Text style={globalStyles.historyItemSubtitle}>{it.description}</Text>
-                                    </Pressable>
-
-                                    {idx < group.items.length - 1 && <View style={globalStyles.historyDivider} />}
-                                </View>
-                            ))}
+                                        {idx < group.items.length - 1 && <View style={globalStyles.historyDivider} />}
+                                    </View>
+                                )
+                            })}
                         </View>
                     );
                 }}
