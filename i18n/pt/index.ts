@@ -62,6 +62,15 @@ const pt = {
     passwordMinHint: "Pelo menos 8 caracteres",
     updatePasswordButton: "Atualizar Senha",
 
+    errorCurrentRequired: "Informe sua senha atual.",
+    errorNewRequired: "Informe a nova senha.",
+    errorNewMin: "A nova senha deve ter no mínimo 6 caracteres.",
+    errorConfirmRequired: "Confirme a nova senha.",
+    errorPasswordsDontMatch: "A confirmação não corresponde à nova senha.",
+    errorSameAsCurrent: "A nova senha não pode ser igual à senha atual.",
+    errorFillAllFields: "Preencha todos os campos para continuar.",
+    errorPasswordMin: "A nova senha deve ter no mínimo 6 caracteres.",
+    errorRequired: "Campo é obrigatório.",
   },
 
   subscribe: {

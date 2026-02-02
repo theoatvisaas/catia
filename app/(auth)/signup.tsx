@@ -1,4 +1,5 @@
 // app/(auth)/signup.tsx
+import { useAuthStore } from "@/stores/auth/useAuthStore";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
@@ -40,16 +41,23 @@ function LogoIcon() {
 }
 
 export default function SignUp() {
+  const { signUp, loading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ✅ como o app é PT, deixa em "Português" por padrão
   const [language, setLanguage] = useState("Português");
 
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+
+  async function handleSignUp() {
+    if (!agreePrivacy || !agreeTerms) return;
+
+    const response = await signUp({ email, password });
+    if (response) router.replace("/login");
+  }
 
   return (
     <View style={globalStyles.screen}>
@@ -132,6 +140,8 @@ export default function SignUp() {
           </Text>
         </Pressable>
 
+        {error ? <Text style={{ color: "red", marginTop: 8 }}>{error}</Text> : null}
+
         <Pressable
           style={globalStyles.checkRow}
           onPress={() => setAgreeTerms((v) => !v)}
@@ -154,12 +164,14 @@ export default function SignUp() {
 
         <Pressable
           style={[globalStyles.button, { marginTop: 18 }]}
-          onPress={() => router.replace("/dashboard")}
+          onPress={handleSignUp}
+          disabled={loading}
         >
           <Text style={globalStyles.buttonText}>
             {t("auth", "signupButton")}
           </Text>
         </Pressable>
+
 
         <Pressable
           style={globalStyles.bottomLinkRow}

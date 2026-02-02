@@ -175,7 +175,6 @@ export default function HistoryLoadingScreen() {
             />
 
 
-
         </View>
     );
 }

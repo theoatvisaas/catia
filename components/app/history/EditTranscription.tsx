@@ -1,18 +1,11 @@
-// components/app/history/EditTranscription.tsx
 "use client";
 
 import { t } from "@/i18n";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
-import React, { useEffect, useMemo, useState } from "react";
-import {
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    View,
-} from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { RichEditor, RichToolbar, actions } from "react-native-pell-rich-editor";
 
 type Props = {
     visible: boolean;
@@ -23,41 +16,36 @@ type Props = {
     onSave?: (text: string) => void;
 };
 
-type ToolbarKey = "bold" | "h" | "list" | "list2";
-
 export default function EditTranscription({
     visible,
     onClose,
     initialText = "",
     onSave,
 }: Props) {
+    const editorRef = useRef<RichEditor>(null);
+
     const [value, setValue] = useState(initialText);
-    const [active, setActive] = useState<Set<ToolbarKey>>(new Set());
 
     useEffect(() => {
-        if (visible) setValue(initialText);
+        if (!visible) return;
+        setValue(initialText);
+        requestAnimationFrame(() => {
+            editorRef.current?.setContentHTML(initialText || "");
+        });
     }, [visible, initialText]);
 
     const canSave = useMemo(() => value.trim().length > 0, [value]);
 
-    function toggle(key: ToolbarKey) {
-        setActive((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) next.delete(key);
-            else next.add(key);
-            return next;
-        });
-    }
-
-    function handleSave() {
-        onSave?.(value);
+    async function handleSave() {
+        const html = await editorRef.current?.getContentHtml();
+        const next = (html ?? "").trim();
+        onSave?.(next);
         onClose();
     }
 
     return (
         <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
             <View style={globalStyles.editTranscriptionBackdrop}>
-                {/* backdrop NÃO fecha (réplica do comportamento que você vem pedindo) */}
                 <Pressable style={globalStyles.editTranscriptionBackdropPressable} />
 
                 <View style={globalStyles.editTranscriptionSheet}>
@@ -82,77 +70,45 @@ export default function EditTranscription({
 
                     <View style={globalStyles.editTranscriptionEditorCard}>
                         <View style={globalStyles.editTranscriptionToolbar}>
-                            <Pressable
-                                onPress={() => toggle("bold")}
-                                style={({ pressed }) => [
-                                    globalStyles.editTranscriptionToolBtn,
-                                    active.has("bold") ? globalStyles.editTranscriptionToolBtnActive : null,
-                                    pressed ? globalStyles.editTranscriptionToolBtnPressed : null,
+                            <RichToolbar
+                                editor={editorRef}
+                                actions={[
+                                    actions.setBold,
+                                    actions.heading1,
+                                    actions.setParagraph,
+                                    actions.insertBulletsList,
+                                    actions.insertOrderedList,
                                 ]}
-                            >
-                                <Text
-                                    style={[
-                                        globalStyles.editTranscriptionToolText,
-                                        active.has("bold") ? globalStyles.editTranscriptionToolTextActive : null,
-                                    ]}
-                                >
-                                    B
-                                </Text>
-                            </Pressable>
 
-                            <Pressable
-                                onPress={() => toggle("h")}
-                                style={({ pressed }) => [
-                                    globalStyles.editTranscriptionToolBtn,
-                                    active.has("h") ? globalStyles.editTranscriptionToolBtnActive : null,
-                                    pressed ? globalStyles.editTranscriptionToolBtnPressed : null,
-                                ]}
-                            >
-                                <Text
-                                    style={[
-                                        globalStyles.editTranscriptionToolText,
-                                        active.has("h") ? globalStyles.editTranscriptionToolTextActive : null,
-                                    ]}
-                                >
-                                    H
-                                </Text>
-                            </Pressable>
-
-                            <Pressable
-                                onPress={() => toggle("list")}
-                                style={({ pressed }) => [
-                                    globalStyles.editTranscriptionToolBtn,
-                                    active.has("list") ? globalStyles.editTranscriptionToolBtnActive : null,
-                                    pressed ? globalStyles.editTranscriptionToolBtnPressed : null,
-                                ]}
-                            >
-                                <Text
-                                    style={[
-                                        globalStyles.editTranscriptionToolText,
-                                        active.has("list") ? globalStyles.editTranscriptionToolTextActive : null,
-                                    ]}
-                                >
-                                    ≡
-                                </Text>
-                            </Pressable>
-
-                            <Pressable
-                                onPress={() => toggle("list2")}
-                                style={({ pressed }) => [
-                                    globalStyles.editTranscriptionToolBtn,
-                                    active.has("list2") ? globalStyles.editTranscriptionToolBtnActive : null,
-                                    pressed ? globalStyles.editTranscriptionToolBtnPressed : null,
-                                ]}
-                            >
-                                <Text
-                                    style={[
-                                        globalStyles.editTranscriptionToolText,
-                                        active.has("list2") ? globalStyles.editTranscriptionToolTextActive : null,
-                                    ]}
-                                >
-                                    ≡≡
-                                </Text>
-                            </Pressable>
+                                iconMap={{
+                                    [actions.setBold]: ({ tintColor }: any) => (
+                                        <Text style={[globalStyles.editTranscriptionToolText, { color: tintColor }]}>
+                                            B
+                                        </Text>
+                                    ),
+                                    [actions.heading1]: ({ tintColor }: any) => (
+                                        <Text style={[globalStyles.editTranscriptionToolText, { color: tintColor }]}>
+                                            H
+                                        </Text>
+                                    ),
+                                    [actions.setParagraph]: ({ tintColor }: any) => (
+                                        <Text style={[globalStyles.editTranscriptionToolText, { color: tintColor }]}>
+                                            P
+                                        </Text>
+                                    ),
+                                    [actions.insertBulletsList]: ({ tintColor }: any) => (
+                                        <Text style={[globalStyles.editTranscriptionToolText, { color: tintColor }]}>
+                                            ≡
+                                        </Text>
+                                    ),
+                                    [actions.insertOrderedList]: ({ tintColor }: any) => (
+                                        <Text style={[globalStyles.editTranscriptionToolText, { color: tintColor }]}>
+                                            ≡≡
+                                        </Text>
+                                    ),
+                                }}
+                                style={{ backgroundColor: "transparent" }}
+                            />
                         </View>
 
                         <View style={globalStyles.editTranscriptionEditorDivider} />
@@ -163,14 +119,19 @@ export default function EditTranscription({
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}
                         >
-                            <TextInput
+                            <RichEditor
+                                ref={editorRef}
+                                initialContentHTML={initialText || ""}
                                 style={globalStyles.editTranscriptionInput}
-                                value={value}
-                                onChangeText={setValue}
                                 placeholder={t("historyTranscription", "editPlaceholder")}
-                                placeholderTextColor={colors.textDisabled}
-                                multiline
-                                textAlignVertical="top"
+                                initialHeight={180}
+                                editorStyle={{
+                                    backgroundColor: "transparent",
+                                    color: colors.textPrimary,
+                                    placeholderColor: colors.textDisabled,
+                                    contentCSSText: "font-size: 16px;",
+                                }}
+                                onChange={(html) => setValue(html)}
                             />
                         </ScrollView>
                     </View>
