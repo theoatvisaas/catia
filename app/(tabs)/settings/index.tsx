@@ -10,12 +10,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useAuthStore } from "@/stores/auth/useAuthStore";
 import { t } from "../../../i18n";
 import { globalStyles } from "../../../styles/theme";
 import { colors } from "../../../styles/theme/colors";
 
 export default function SettingsScreen() {
     const insets = useSafeAreaInsets();
+    const logout = useAuthStore((s) => s.logout);
 
     const [name, setName] = useState("Théo");
     const [crmv, setCrmv] = useState("");
@@ -205,7 +207,7 @@ export default function SettingsScreen() {
 
                     <Pressable
                         style={globalStyles.settingsGhostButton}
-                        onPress={() => router.replace("/login")}
+                        onPress={() => {logout; router.replace("/login")}}
                     >
                         <Text style={globalStyles.settingsGhostButtonText}>
                             {t("settings", "logoutButton")}

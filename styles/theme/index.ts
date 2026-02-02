@@ -1683,7 +1683,7 @@ export const globalStyles = StyleSheet.create({
   // =========================
   advancedActionsBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(139, 108, 246, 0.35)",
+    backgroundColor: "rgba(139, 108, 246, 0.55)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1926,7 +1926,7 @@ export const globalStyles = StyleSheet.create({
 
   editPatientBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(139, 108, 246, 0.35)",
+    backgroundColor: "rgba(139, 108, 246, 0.55)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -2213,7 +2213,7 @@ export const globalStyles = StyleSheet.create({
   // =========================
   editTranscriptionBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(139, 108, 246, 0.35)",
+    backgroundColor: "rgba(139, 108, 246, 0.55)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -2224,7 +2224,7 @@ export const globalStyles = StyleSheet.create({
 
   editTranscriptionSheet: {
     width: "92%",
-    maxHeight: "86%",
+    height: "86%",
     backgroundColor: colors.primaryWhite,
     borderRadius: radius.lg,
     overflow: "hidden",
