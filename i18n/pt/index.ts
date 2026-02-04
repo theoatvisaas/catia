@@ -51,6 +51,8 @@ const pt = {
     supportButton: "Falar com o Suporte",
     logoutTitle: "Sair da sua conta",
     logoutButton: "Sair",
+    namePlaceholder: 'Seu nome completo',
+    profileTitle: "Dados pessoais"
   },
 
   changePassword: {
