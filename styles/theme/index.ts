@@ -427,6 +427,7 @@ export const globalStyles = StyleSheet.create({
     backgroundColor: colors.surface,
     ...typography.body,
     color: colors.textPrimary,
+    fontSize: 13
   },
 
   settingsSelectLike: {
@@ -489,6 +490,14 @@ export const globalStyles = StyleSheet.create({
 
   settingsSaveButton: {
     backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+    alignSelf: "flex-start",
+  },
+
+  settingsSaveButtonDesactive: {
+    backgroundColor: colors.surfaceSub,
     paddingVertical: 12,
     paddingHorizontal: 18,
     borderRadius: 10,

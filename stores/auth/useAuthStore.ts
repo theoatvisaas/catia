@@ -12,7 +12,7 @@ type AuthState = {
   login: (input: { email: string; password: string }) => Promise<boolean>;
   signUp: (input: { email: string; password: string }) => Promise<boolean>;
   changePassword: (input: { currentPassword: string; newPassword: string }) => Promise<ChangePasswordResponse>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -73,7 +73,11 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      logout: () => set({ session: null, loading: false, error: null }),
+      logout: async () => {
+        await AsyncStorage.removeItem("auth-session");
+        set({ session: null, loading: false, error: null });
+      },
+
     }),
     {
       name: "auth-session",
