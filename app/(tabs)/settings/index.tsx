@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Check, ChevronDown, TriangleAlert } from "lucide-react-native";
+import { Check, TriangleAlert } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -367,13 +367,13 @@ export default function SettingsScreen() {
                     />
 
 
-                    <Text style={globalStyles.settingsFieldLabel}>
+                    {/* <Text style={globalStyles.settingsFieldLabel}>
                         {t("auth", "emailLabel")} *
                     </Text>
                     <View style={globalStyles.settingsSelectLike}>
                         <Text style={globalStyles.settingsSelectText}>{email}</Text>
                         <ChevronDown size={18} color={colors.textSecondary} />
-                    </View>
+                    </View> */}
 
                     {/* <Text style={globalStyles.settingsFieldLabel}>
                         {t("settings", "specialtyLabel")}

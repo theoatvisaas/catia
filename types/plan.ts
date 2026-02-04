@@ -5,6 +5,7 @@ export type Plan = {
     advantages: string[];
     isFeatured: boolean;
     monthly_amount: string;
+    stripe_price_id: string;
 };
 
 export type PlansResponse = {
