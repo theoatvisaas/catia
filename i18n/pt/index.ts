@@ -95,6 +95,7 @@ const pt = {
     featureSupport: "Suporte",
     featurePreferences: "Ensinamos suas preferências para o Dr. Assistente",
     featureLearning: "Dr. Assistente aprende com seus feedbacks",
+    monthSuffix: "mês"
   },
 
   record: {
@@ -272,6 +273,7 @@ const pt = {
     save: "Salvar",
     cancel: "Cancelar",
     loading: "Carregando...",
+    tryAgain: "Tentar novamente"
   },
 } as const;
 

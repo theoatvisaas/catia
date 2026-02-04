@@ -1,24 +1,17 @@
 import { router } from "expo-router";
 import { Check } from "lucide-react-native";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { usePaymentStore } from "@/stores/billing/usePaymentStore";
 import { usePlansStore } from "@/stores/billing/usePlansStore";
+import { CreateCheckoutInput } from "@/types/payment";
 import { t } from "../../../i18n";
 import { globalStyles } from "../../../styles/theme";
 import { colors } from "../../../styles/theme/colors";
 
-type UiPlan = {
-    id: string;
-    title: string;
-    price: string;
-    features: string[];
-    popular?: boolean;
-};
-
 function formatMonthlyPrice(v: string) {
-    // backend manda decimal como string (ex: "29.90")
     const n = Number(v);
     if (!Number.isFinite(n)) return v;
 
@@ -33,60 +26,37 @@ export default function SubscribeScreen() {
     const insets = useSafeAreaInsets();
 
     const { plans, loading, error, hydrated, listPlans } = usePlansStore();
+    const { createCheckout } = usePaymentStore();
 
     useEffect(() => {
-        // se quiser sempre buscar mesmo com cache, remova o if
+        console.log("hydrated:", hydrated);
+
         if (!hydrated) return;
 
-        listPlans().catch((e) => {
-            console.log("❌ erro listPlans:", e?.message ?? e);
-        });
-    }, [hydrated]);
+        listPlans()
+            .then(() => console.log("listPlans OK"))
+            .catch((e) => console.log("❌ erro listPlans:", e?.message ?? e));
+    }, [hydrated, listPlans]);
 
-    const uiPlans: UiPlan[] = useMemo(() => {
-        // Se não veio nada do backend ainda, mantém fallback com i18n (não quebra layout)
-        if (!plans || plans.length === 0) {
-            return [
-                {
-                    id: "basic",
-                    title: t("subscribe", "planBasicTitle"),
-                    price: t("subscribe", "planBasicPrice"),
-                    features: [t("subscribe", "featureAdvancedModels"), t("subscribe", "featureSupport")],
-                },
-                {
-                    id: "advanced",
-                    title: t("subscribe", "planAdvancedTitle"),
-                    price: t("subscribe", "planAdvancedPrice"),
-                    popular: true,
-                    features: [
-                        t("subscribe", "featureAdvancedModels"),
-                        t("subscribe", "featurePreferences"),
-                        t("subscribe", "featureLearning"),
-                        t("subscribe", "featureSupport"),
-                    ],
-                },
-                {
-                    id: "pro",
-                    title: t("subscribe", "planProTitle"),
-                    price: t("subscribe", "planProPrice"),
-                    features: [
-                        t("subscribe", "featureAdvancedModels"),
-                        t("subscribe", "featurePreferences"),
-                        t("subscribe", "featureLearning"),
-                        t("subscribe", "featureSupport"),
-                    ],
-                },
-            ];
-        }
-
-        return plans.map((p) => ({
-            id: p.id,
-            title: p.title,
-            price: `${formatMonthlyPrice(p.monthly_amount)}/${t("subscribe", "monthSuffix") ?? "mês"}`,
-            features: p.advantages ?? [],
-            popular: !!p.isFeatured,
-        }));
+    useEffect(() => {
+        console.log("plans:", plans);
     }, [plans]);
+
+
+    async function handleSubmit(priceId: string) {
+        try {
+            const body: CreateCheckoutInput = {stripe_price_id: priceId}
+
+            const res = await createCheckout(body);
+
+            console.log("createCheckout res:", res);
+
+            return res;
+        } catch (e: any) {
+            console.log("❌ createCheckout error:", e?.response?.data ?? e?.message ?? e);
+            throw e;
+        }
+    }
 
     return (
         <View style={globalStyles.screenWithBottomBar}>
@@ -125,68 +95,71 @@ export default function SubscribeScreen() {
                     {t("subscribe", "title")}
                 </Text>
 
-                {/* loading/erro sem quebrar layout */}
                 {loading ? (
                     <View style={{ marginTop: 10, marginBottom: 12, alignItems: "center" }}>
                         <ActivityIndicator />
                     </View>
                 ) : error ? (
                     <View style={{ marginTop: 10, marginBottom: 12 }}>
-                        <Text style={globalStyles.settingsSectionSubtitle}>
-                            {error}
-                        </Text>
+                        <Text style={globalStyles.settingsSectionSubtitle}>{error}</Text>
 
                         <Pressable
                             style={globalStyles.settingsPrimaryButton}
                             onPress={() => listPlans().catch(() => { })}
                         >
                             <Text style={globalStyles.settingsPrimaryButtonText}>
-                                {t("common", "tryAgain") ?? "Tentar novamente"}
+                                {t("common", "tryAgain")}
                             </Text>
                         </Pressable>
                     </View>
                 ) : null}
 
-                {uiPlans.map((plan) => (
-                    <View key={plan.id} style={globalStyles.subscribeCard}>
-                        {plan.popular ? (
-                            <View style={globalStyles.subscribeRibbonWrap}>
-                                <View style={globalStyles.subscribeRibbon}>
-                                    <Text
-                                        style={globalStyles.subscribeRibbonText}
-                                        numberOfLines={1}
-                                        ellipsizeMode="clip"
-                                    >
-                                        {t("subscribe", "mostPopular")}
-                                    </Text>
+                {(plans ?? []).map((plan) => {
+                    const title = String(plan.title);
+                    const price = `${formatMonthlyPrice(String(plan.monthly_amount))}/${t("subscribe", "monthSuffix")}`;
+                    const features = (plan.advantages ?? []) as string[];
+                    const popular = !!plan.isFeatured;
+                    const stripePriceId = String(plan.stripe_price_id);
+
+                    return (
+                        <View key={String(plan.id)} style={globalStyles.subscribeCard}>
+                            {popular ? (
+                                <View style={globalStyles.subscribeRibbonWrap}>
+                                    <View style={globalStyles.subscribeRibbon}>
+                                        <Text
+                                            style={globalStyles.subscribeRibbonText}
+                                            numberOfLines={1}
+                                            ellipsizeMode="clip"
+                                        >
+                                            {t("subscribe", "mostPopular")}
+                                        </Text>
+                                    </View>
                                 </View>
+                            ) : null}
+
+                            <Text style={globalStyles.subscribePlanTitle}>{title}</Text>
+                            <Text style={globalStyles.subscribePlanPrice}>{price}</Text>
+
+                            <View style={globalStyles.subscribeFeatureList}>
+                                {features.map((f, idx) => (
+                                    <View key={idx} style={globalStyles.subscribeFeatureRow}>
+                                        <Check size={16} color={colors.success} />
+                                        <Text style={globalStyles.subscribeFeatureText}>{f}</Text>
+                                    </View>
+                                ))}
                             </View>
-                        ) : null}
 
-                        <Text style={globalStyles.subscribePlanTitle}>{plan.title}</Text>
-                        <Text style={globalStyles.subscribePlanPrice}>{plan.price}</Text>
-
-                        <View style={globalStyles.subscribeFeatureList}>
-                            {plan.features.map((f, idx) => (
-                                <View key={idx} style={globalStyles.subscribeFeatureRow}>
-                                    <Check size={16} color={colors.success} />
-                                    <Text style={globalStyles.subscribeFeatureText}>{f}</Text>
-                                </View>
-                            ))}
+                            <Pressable
+                                style={globalStyles.subscribeCTA}
+                                onPress={() => handleSubmit(stripePriceId)}
+                            >
+                                <Text style={globalStyles.subscribeCTAText}>
+                                    {t("subscribe", "cta")}
+                                </Text>
+                            </Pressable>
                         </View>
-
-                        <Pressable
-                            style={globalStyles.subscribeCTA}
-                            onPress={() => {
-                                console.log("Assinar plano:", plan.id);
-                            }}
-                        >
-                            <Text style={globalStyles.subscribeCTAText}>
-                                {t("subscribe", "cta")}
-                            </Text>
-                        </Pressable>
-                    </View>
-                ))}
+                    );
+                })}
             </ScrollView>
         </View>
     );
