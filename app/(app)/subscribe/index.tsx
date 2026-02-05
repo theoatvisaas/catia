@@ -47,33 +47,13 @@ export default function SubscribeScreen() {
     }, [plans]);
 
 
-    /* async function handleSubmit(priceId: string) {
-        try {
-            const body: CreateCheckoutInput = { stripe_price_id: priceId }
-
-            const res = await createCheckout(body);
-
-            console.log("createCheckout res:", res);
-
-            return res;
-        } catch (e: any) {
-            console.log("❌ createCheckout error:", e?.response?.data ?? e?.message ?? e);
-            throw e;
-        }
-    } */
-
     async function handleSubmit(priceId: string) {
         try {
             const body: CreateCheckoutInput = { stripe_price_id: priceId };
             const res = await createCheckout(body);
-            console.log("res 1 =>> ", res)
 
-            //pi_ = PaymentIntent → cobrança imediata
-            //seti_ = SetupIntent → só cadastrar o cartão
-            //const paymentIntentClientSecret = (res as any).paymentIntentClientSecret;
             const secret = (res as any).paymentIntentClientSecret as string | undefined;
 
-            console.log("secret =>> ", secret)
 
             if (!secret) {
                 Alert.alert("Erro", "PaymentIntent não retornado pelo backend");
@@ -102,7 +82,7 @@ export default function SubscribeScreen() {
                 return;
             }
 
-            Alert.alert("🎉 Assinatura ativa!", "Pagamento concluído com sucesso.");
+            Alert.alert("Assinatura ativa", "Pagamento concluído com sucesso.");
         } catch (e: any) {
             console.log("❌ createCheckout error:", e?.response?.data ?? e?.message ?? e);
             Alert.alert("Erro", "Falha ao iniciar assinatura.");
