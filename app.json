@@ -8,10 +8,29 @@
     "scheme": "catia",
     "userInterfaceStyle": "automatic",
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.yourcompany"
+        }
+      ]
     ],
     "android": {
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.anonymous.catia"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c01ac443-6f7e-4b58-abc7-44be794cb8b8"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.anonymous.catia",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     }
   }
 }

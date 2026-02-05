@@ -56,7 +56,7 @@ export const usePaymentStore = create<PaymentState>()(
                     set({ loading: true, error: null, errorStatus: undefined });
 
                     const res = await paymentService.createCheckout(input);
-
+                    console.log("res =====> ", res)
                     set({ checkout: res, loading: false });
                     return res;
                 } catch (e: any) {
