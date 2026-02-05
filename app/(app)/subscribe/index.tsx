@@ -1,12 +1,13 @@
 import { router } from "expo-router";
 import { Check } from "lucide-react-native";
 import React, { useEffect } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { usePaymentStore } from "@/stores/billing/usePaymentStore";
 import { usePlansStore } from "@/stores/billing/usePlansStore";
 import { CreateCheckoutInput } from "@/types/payment";
+import { useStripe } from "@stripe/stripe-react-native";
 import { t } from "../../../i18n";
 import { globalStyles } from "../../../styles/theme";
 import { colors } from "../../../styles/theme/colors";
@@ -28,6 +29,9 @@ export default function SubscribeScreen() {
     const { plans, loading, error, hydrated, listPlans } = usePlansStore();
     const { createCheckout } = usePaymentStore();
 
+    const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
+
     useEffect(() => {
         console.log("hydrated:", hydrated);
 
@@ -43,9 +47,9 @@ export default function SubscribeScreen() {
     }, [plans]);
 
 
-    async function handleSubmit(priceId: string) {
+    /* async function handleSubmit(priceId: string) {
         try {
-            const body: CreateCheckoutInput = {stripe_price_id: priceId}
+            const body: CreateCheckoutInput = { stripe_price_id: priceId }
 
             const res = await createCheckout(body);
 
@@ -56,7 +60,55 @@ export default function SubscribeScreen() {
             console.log("❌ createCheckout error:", e?.response?.data ?? e?.message ?? e);
             throw e;
         }
+    } */
+
+    async function handleSubmit(priceId: string) {
+        try {
+            const body: CreateCheckoutInput = { stripe_price_id: priceId };
+            const res = await createCheckout(body);
+            console.log("res 1 =>> ", res)
+
+            //pi_ = PaymentIntent → cobrança imediata
+            //seti_ = SetupIntent → só cadastrar o cartão
+            //const paymentIntentClientSecret = (res as any).paymentIntentClientSecret;
+            const secret = (res as any).paymentIntentClientSecret as string | undefined;
+
+            console.log("secret =>> ", secret)
+
+            if (!secret) {
+                Alert.alert("Erro", "PaymentIntent não retornado pelo backend");
+                return;
+            }
+
+            const isSetup = secret.startsWith("seti_");
+
+            const { error: initError } = await initPaymentSheet({
+                merchantDisplayName: "Catia",
+                customerId: res.customerId,
+                customerEphemeralKeySecret: res.ephemeralKeySecret,
+                ...(isSetup ? { setupIntentClientSecret: secret} : {paymentIntentClientSecret: secret}),
+                allowsDelayedPaymentMethods: false,
+            });
+
+            if (initError) {
+                Alert.alert("Erro ao preparar pagamento", initError.message);
+                return;
+            }
+
+            const { error: presentError } = await presentPaymentSheet();
+
+            if (presentError) {
+                Alert.alert("Pagamento não concluído", presentError.message);
+                return;
+            }
+
+            Alert.alert("🎉 Assinatura ativa!", "Pagamento concluído com sucesso.");
+        } catch (e: any) {
+            console.log("❌ createCheckout error:", e?.response?.data ?? e?.message ?? e);
+            Alert.alert("Erro", "Falha ao iniciar assinatura.");
+        }
     }
+
 
     return (
         <View style={globalStyles.screenWithBottomBar}>
