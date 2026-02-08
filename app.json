@@ -2,20 +2,13 @@
   "expo": {
     "name": "catia",
     "slug": "catia",
+    "owner": "theomoura",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "catia",
     "userInterfaceStyle": "automatic",
-    "plugins": [
-      "expo-router",
-      [
-        "@stripe/stripe-react-native",
-        {
-          "merchantIdentifier": "merchant.com.yourcompany"
-        }
-      ]
-    ],
+    "plugins": ["expo-router", ["@stripe/stripe-react-native", {}]],
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.anonymous.catia"
@@ -23,7 +16,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "c01ac443-6f7e-4b58-abc7-44be794cb8b8"
+        "projectId": "1bdbd89b-aae0-4acb-86cb-b48877059d9e"
       }
     },
     "ios": {
