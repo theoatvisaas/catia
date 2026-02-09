@@ -10,7 +10,7 @@ type AuthState = {
   error: string | null;
 
   login: (input: { email: string; password: string }) => Promise<boolean>;
-  signUp: (input: { email: string; password: string }) => Promise<boolean>;
+  signUp: (input: { name: string, email: string; password: string }) => Promise<boolean>;
   changePassword: (input: { currentPassword: string; newPassword: string }) => Promise<ChangePasswordResponse>;
   logout: () => Promise<void>;
 };
@@ -38,10 +38,10 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      signUp: async ({ email, password }) => {
+      signUp: async ({ name, email, password }) => {
         set({ loading: true, error: null });
         try {
-          const session = await authService.signUp({ email, password });
+          const session = await authService.signUp({ name, email, password });
           set({ session, loading: false });
           return true;
         } catch (e: any) {

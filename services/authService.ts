@@ -8,7 +8,7 @@ import { api } from "./api";
 import { getValidAccessToken } from "./auth/token";
 
 export const authService = {
-    signUp: (input: { email: string; password: string }) =>
+    signUp: (input: { name: string, email: string; password: string }) =>
         api<SignUpResponse>({
             path: "/auth/signup",
             method: "POST",

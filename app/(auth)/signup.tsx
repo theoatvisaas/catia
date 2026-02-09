@@ -46,6 +46,7 @@ export default function SignUp() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("")
 
   const [language, setLanguage] = useState("Português");
 
@@ -54,8 +55,9 @@ export default function SignUp() {
 
   async function handleSignUp() {
     if (!agreePrivacy || !agreeTerms) return;
+    if (!name.trim()) return;
 
-    const response = await signUp({ email, password });
+    const response = await signUp({ name, email, password });
     if (response) router.replace("/login");
   }
 
@@ -66,6 +68,18 @@ export default function SignUp() {
           <LogoIcon />
           <Text style={globalStyles.signupTitle}>{t("auth", "signupTitle")}</Text>
         </View>
+
+        <Text style={globalStyles.label}>
+          {t("auth", "nameLabel")} *
+        </Text>
+        <TextInput
+          style={globalStyles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder=""
+          autoCapitalize="words"
+        />
+
 
         <Text style={globalStyles.label}>
           {t("auth", "emailLabel")} *

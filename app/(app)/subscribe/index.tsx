@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { Check } from "lucide-react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -36,6 +36,8 @@ export default function SubscribeScreen() {
   const { plans, loading, error, hydrated, listPlans } = usePlansStore();
   const { createCheckout } = usePaymentStore();
 
+  const [submittingPlanId, setSubmittingPlanId] = useState<string | null>(null);
+
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   useEffect(() => {
@@ -53,11 +55,16 @@ export default function SubscribeScreen() {
   }, [plans]);
 
   async function handleSubmit(priceId: string, rankTier: number) {
+    if (submittingPlanId) return;
+
     try {
+      setSubmittingPlanId(priceId);
+
       const body: CreateCheckoutInput = {
         stripe_price_id: priceId,
         plan_rank_tier: rankTier,
       };
+
       const res = await createCheckout(body);
 
       const secret = (res as any).paymentIntentClientSecret as
@@ -100,8 +107,11 @@ export default function SubscribeScreen() {
         e?.response?.data ?? e?.message ?? e
       );
       Alert.alert("Erro", "Falha ao iniciar assinatura.");
+    } finally {
+      setSubmittingPlanId(null);
     }
   }
+
 
   return (
     <View style={globalStyles.screenWithBottomBar}>
@@ -152,7 +162,7 @@ export default function SubscribeScreen() {
 
             <Pressable
               style={globalStyles.settingsPrimaryButton}
-              onPress={() => listPlans().catch(() => {})}
+              onPress={() => listPlans().catch(() => { })}
             >
               <Text style={globalStyles.settingsPrimaryButtonText}>
                 {t("common", "tryAgain")}
@@ -171,6 +181,8 @@ export default function SubscribeScreen() {
           const popular = !!plan.isFeatured;
           const stripePriceId = String(plan.stripe_price_id);
           const planRankTier = Number(plan.rank_tier);
+
+          const isSubmitting = submittingPlanId === stripePriceId;
 
           return (
             <View key={String(plan.id)} style={globalStyles.subscribeCard}>
@@ -201,12 +213,20 @@ export default function SubscribeScreen() {
               </View>
 
               <Pressable
-                style={globalStyles.subscribeCTA}
+                disabled={isSubmitting}
+                style={[
+                  globalStyles.subscribeCTA,
+                  isSubmitting && { opacity: 0.6 },
+                ]}
                 onPress={() => handleSubmit(stripePriceId, planRankTier)}
               >
-                <Text style={globalStyles.subscribeCTAText}>
-                  {t("subscribe", "cta")}
-                </Text>
+                {isSubmitting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={globalStyles.subscribeCTAText}>
+                    {t("subscribe", "cta")}
+                  </Text>
+                )}
               </Pressable>
             </View>
           );

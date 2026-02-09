@@ -8,6 +8,7 @@ const pt = {
     noAccount: "Ainda não tem uma conta? ",
     signUp: "Criar conta",
     forgotPassword: "Esqueceu sua senha?",
+    nameLabel: "Nome Completo",
 
     // ✅ SIGNUP
     signupTitle: "Criar conta",
