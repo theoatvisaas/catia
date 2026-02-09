@@ -1,4 +1,5 @@
 // app/(tabs)/_layout.tsx
+import { RecorderProvider } from "@/providers/RecordProvider";
 import { Tabs, useSegments } from "expo-router";
 import { Mic, ScrollText, Settings } from "lucide-react-native";
 import React from "react";
@@ -8,8 +9,6 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const segments = useSegments();
 
-  // Exemplo quando está em new-record:
-  // ["(tabs)", "record", "new-record"]
   const isNewRecord =
     segments.includes("record") && segments.includes("new-record");
 
@@ -19,16 +18,17 @@ export default function TabsLayout() {
   const border = "#E2E8F0";
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: inactiveColor,
-        tabBarLabelStyle: { fontSize: 12, marginTop: 6 },
+    <RecorderProvider>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: activeColor,
+          tabBarInactiveTintColor: inactiveColor,
+          tabBarLabelStyle: { fontSize: 12, marginTop: 6 },
 
-        tabBarStyle: isNewRecord
-          ? { display: "none" }
-          : {
+          tabBarStyle: isNewRecord
+            ? { display: "none" }
+            : {
               backgroundColor: barBg,
               borderTopColor: border,
               borderTopWidth: 1,
@@ -36,37 +36,38 @@ export default function TabsLayout() {
               paddingBottom: 12 + insets.bottom,
               height: 70 + insets.bottom,
             },
-      }}
-    >
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: "Histórico",
-          tabBarIcon: ({ color, size }) => (
-            <ScrollText color={color} size={size ?? 24} />
-          ),
         }}
-      />
+      >
+        <Tabs.Screen
+          name="history"
+          options={{
+            title: "Histórico",
+            tabBarIcon: ({ color, size }) => (
+              <ScrollText color={color} size={size ?? 24} />
+            ),
+          }}
+        />
 
-      <Tabs.Screen
-        name="record"
-        options={{
-          title: "Gravar",
-          tabBarIcon: ({ color, size }) => (
-            <Mic color={color} size={size ?? 26} />
-          ),
-        }}
-      />
+        <Tabs.Screen
+          name="record"
+          options={{
+            title: "Gravar",
+            tabBarIcon: ({ color, size }) => (
+              <Mic color={color} size={size ?? 26} />
+            ),
+          }}
+        />
 
-      <Tabs.Screen
-        name="settings/index"
-        options={{
-          title: "Ajustes",
-          tabBarIcon: ({ color, size }) => (
-            <Settings color={color} size={size ?? 24} />
-          ),
-        }}
-      />
-    </Tabs>
+        <Tabs.Screen
+          name="settings/index"
+          options={{
+            title: "Ajustes",
+            tabBarIcon: ({ color, size }) => (
+              <Settings color={color} size={size ?? 24} />
+            ),
+          }}
+        />
+      </Tabs>
+    </RecorderProvider>
   );
 }
