@@ -8,11 +8,23 @@ import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
 import { router } from "expo-router";
 import { Mic, TriangleAlert } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type SexKey = "male" | "female" | null;
+
+function pad2(n: number) {
+    return String(n).padStart(2, "0");
+}
+
+function formatHMS(ms: number) {
+    const totalSec = Math.floor(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+}
 
 export default function NewRecordScreen() {
     const insets = useSafeAreaInsets();
@@ -23,50 +35,14 @@ export default function NewRecordScreen() {
     const [uploading, setUploading] = useState(false);
 
     const [stopOpen, setStopOpen] = useState(false);
-
     const [headerHeight, setHeaderHeight] = useState(0);
 
     const audio = useRecorder();
     const recording = audio.isRecording;
-    const isPaused = audio.isPaused
+    const isPaused = audio.isPaused;
 
-
-    const [elapsedMs, setElapsedMs] = useState(0);
-    const startedAtRef = useRef<number | null>(null);
-
-
-    const [tick, setTick] = useState(0);
-
-    const liveElapsedMs =
-        elapsedMs + (recording && startedAtRef.current ? Date.now() - startedAtRef.current : 0);
-
-    const elapsedLabel = formatHMS(liveElapsedMs);
+    const elapsedLabel = formatHMS(audio.durationMs ?? 0);
     const maxDurationLabel = "01:30:00";
-
-
-    useEffect(() => {
-        if (!recording) return;
-
-        if (!startedAtRef.current) startedAtRef.current = Date.now();
-
-        const interval = setInterval(() => setTick((t) => t + 1), 250);
-        return () => clearInterval(interval);
-    }, [recording]);
-
-
-
-    function pad2(n: number) {
-        return String(n).padStart(2, "0");
-    }
-
-    function formatHMS(ms: number) {
-        const totalSec = Math.floor(ms / 1000);
-        const h = Math.floor(totalSec / 3600);
-        const m = Math.floor((totalSec % 3600) / 60);
-        const s = totalSec % 60;
-        return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
-    }
-
 
     const reports = useMemo(
         () => [
@@ -78,8 +54,6 @@ export default function NewRecordScreen() {
         []
     );
 
-
-
     const handleCloseStop = () => {
         setStopOpen(false);
     };
@@ -87,8 +61,10 @@ export default function NewRecordScreen() {
     const handleStart = async () => {
         if (stopOpen || uploading) return;
 
+        // Se já está gravando, ignora
         if (recording) return;
 
+        // Se está pausado, retoma
         if (isPaused) {
             try {
                 await audio.resume();
@@ -96,35 +72,20 @@ export default function NewRecordScreen() {
             return;
         }
 
-        setElapsedMs(0);
-        startedAtRef.current = null;
-
-        setStopOpen(false);
-
         try {
             await audio.start();
         } catch (e) {
+            // opcional: toast/log
         }
     };
-
-
-
 
     const handleStop = async () => {
         try {
             await audio.pause();
         } catch { }
 
-        if (startedAtRef.current) {
-            const delta = Date.now() - startedAtRef.current;
-            setElapsedMs((v) => v + delta);
-            startedAtRef.current = null;
-        }
-
         setStopOpen(true);
     };
-
-
 
     const handleContinue = async () => {
         setStopOpen(false);
@@ -134,22 +95,13 @@ export default function NewRecordScreen() {
         } catch { }
     };
 
-
-
     const handleFinish = async () => {
         setStopOpen(false);
-
-        if (recording && startedAtRef.current) {
-            const delta = Date.now() - startedAtRef.current;
-            setElapsedMs((v) => v + delta);
-            startedAtRef.current = null;
-        }
 
         const uri = await audio.finish();
         if (!uri) return;
 
-        const durationMs =
-            elapsedMs + (startedAtRef.current ? Date.now() - startedAtRef.current : 0);
+        const durationMs = audio.durationMs ?? 0;
 
         setUploading(true);
         await new Promise((r) => setTimeout(r, 2500));
@@ -171,17 +123,10 @@ export default function NewRecordScreen() {
         }
     };
 
-
-
     const handleDiscard = async () => {
         setStopOpen(false);
         await audio.discard();
-
-        setElapsedMs(0);
-        startedAtRef.current = null;
     };
-
-
 
     return (
         <View style={globalStyles.screenWithBottomBar}>
@@ -196,7 +141,7 @@ export default function NewRecordScreen() {
                 style={globalStyles.newRecordScroll}
                 contentContainerStyle={[
                     globalStyles.newRecordContent,
-                    { paddingBottom: ((recording || stopOpen) ? 200 : 78) + insets.bottom },
+                    { paddingBottom: (recording || stopOpen ? 200 : 78) + insets.bottom },
                 ]}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
@@ -304,10 +249,9 @@ export default function NewRecordScreen() {
             <VoiceAction
                 visible={recording}
                 elapsed={elapsedLabel}
-                maxDuration={"01:30:00"}
+                maxDuration={maxDurationLabel}
                 onStop={handleStop}
             />
-
 
             <StopAction
                 visible={stopOpen}

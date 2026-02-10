@@ -1,67 +1,112 @@
-import { AudioRecorder, createAudioRecorder } from "@/lib/audioRecorder";
+import {
+    ExpoAudioStreamModule,
+    useAudioRecorder,
+    type AudioRecording,
+} from "@siteed/expo-audio-studio";
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
-type RecorderCtxValue = AudioRecorder & {
+import { createSpeechRecordingConfig } from "@/lib/audioRecorder";
+
+type RecorderCtxValue = {
+    // compat com seu código atual
+    start: () => Promise<void>;
+    pause: () => Promise<void>;
+    resume: () => Promise<void>;
+    finish: () => Promise<string | null>;
+    discard: () => Promise<void>;
+
     isRecording: boolean;
     isPaused: boolean;
+
+    durationMs: number;
+    lastResult: AudioRecording | null;
 };
 
 const RecorderCtx = createContext<RecorderCtxValue | null>(null);
 
 export function RecorderProvider({ children }: { children: React.ReactNode }) {
-    const recorder = useMemo(() => createAudioRecorder(), []);
+    const [lastResult, setLastResult] = useState<AudioRecording | null>(null);
 
-    const [isRecording, setIsRecording] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
+    const {
+        startRecording,
+        stopRecording,
+        pauseRecording,
+        resumeRecording,
+        isRecording,
+        isPaused,
+        durationMs,
+    } = useAudioRecorder();
 
     const start = useCallback(async () => {
-        // se já está gravando, não faz nada (evita bug)
+        // evita bug/duplicação
         if (isRecording && !isPaused) return;
 
-        await recorder.start();
-        setIsRecording(true);
-        setIsPaused(false);
-    }, [recorder, isRecording, isPaused]);
+        const perm = await ExpoAudioStreamModule.requestPermissionsAsync();
+        if (perm.status !== "granted") {
+            throw new Error("Permissão de microfone negada");
+        }
+
+        setLastResult(null);
+
+        const config = createSpeechRecordingConfig();
+        await startRecording(config);
+    }, [isRecording, isPaused, startRecording]);
 
     const pause = useCallback(async () => {
         if (!isRecording) return;
-
-        await recorder.pause();
-        setIsRecording(false);
-        setIsPaused(true);
-    }, [recorder, isRecording]);
+        await pauseRecording();
+    }, [isRecording, pauseRecording]);
 
     const resume = useCallback(async () => {
         if (!isPaused) return;
-
-        await recorder.resume();
-        setIsRecording(true);
-        setIsPaused(false);
-    }, [recorder, isPaused]);
+        await resumeRecording();
+    }, [isPaused, resumeRecording]);
 
     const finish = useCallback(async () => {
-        const uri = await recorder.finish();
-        setIsRecording(false);
-        setIsPaused(false);
+        const result = await stopRecording();
+        setLastResult(result ?? null);
+
+        const uri =
+            result?.compression?.compressedFileUri ??
+            (result as any)?.compressedFileUri ??
+            (result as any)?.fileUri ??
+            null;
+
         return uri;
-    }, [recorder]);
+    }, [stopRecording]);
 
     const discard = useCallback(async () => {
-        await recorder.discard();
-        setIsRecording(false);
-        setIsPaused(false);
-    }, [recorder]);
+        const result = await stopRecording();
+        setLastResult(null);
 
-    const value: RecorderCtxValue = {
-        ...recorder,
-        start,
-        pause,
-        resume,
-        finish,
-        discard,
-        isRecording,
-        isPaused,
-    };
+        const uri =
+            result?.compression?.compressedFileUri ??
+            (result as any)?.compressedFileUri ??
+            (result as any)?.fileUri ??
+            null;
+
+        try {
+            const maybeDelete = (ExpoAudioStreamModule as any).deleteFileAsync;
+            if (uri && typeof maybeDelete === "function") {
+                await maybeDelete(uri);
+            }
+        } catch { }
+    }, [stopRecording]);
+
+    const value: RecorderCtxValue = useMemo(
+        () => ({
+            start,
+            pause,
+            resume,
+            finish,
+            discard,
+            isRecording,
+            isPaused,
+            durationMs: durationMs ?? 0,
+            lastResult,
+        }),
+        [start, pause, resume, finish, discard, isRecording, isPaused, durationMs, lastResult]
+    );
 
     return <RecorderCtx.Provider value={value}>{children}</RecorderCtx.Provider>;
 }

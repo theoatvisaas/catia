@@ -1,4 +1,4 @@
-import { Audio } from "expo-av";
+import type { RecordingConfig } from "@siteed/expo-audio-studio";
 
 export type AudioRecorder = {
     start: () => Promise<void>;
@@ -8,59 +8,24 @@ export type AudioRecorder = {
     discard: () => Promise<void>;
 };
 
-export function createAudioRecorder(): AudioRecorder {
-    let rec: Audio.Recording | null = null;
+export function createSpeechRecordingConfig(): RecordingConfig {
+  return {
+    sampleRate: 16000,
+    channels: 1,
+    encoding: "pcm_16bit",
+    keepAwake: true,
+    showNotification: true,
+    interval: 1000,
 
-    async function cleanup() {
-        if (!rec) return;
-        try {
-            await rec.stopAndUnloadAsync();
-        } catch { }
-        rec = null;
-    }
+    output: {
+      primary: { enabled: false },
+      compressed: {
+        enabled: true,
+        format: "aac",
+        bitrate: 64000,
+      },
+    },
 
-    return {
-        async start() {
-            const perm = await Audio.requestPermissionsAsync();
-            if (!perm.granted) throw new Error("Permissão de microfone negada");
-
-            await Audio.setAudioModeAsync({
-                allowsRecordingIOS: true,
-                playsInSilentModeIOS: true,
-                shouldDuckAndroid: true,
-            });
-
-            await cleanup();
-
-            const next = new Audio.Recording();
-            await next.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-            await next.startAsync();
-            rec = next;
-        },
-
-        async pause() {
-            if (!rec) return;
-            await rec.pauseAsync();
-        },
-
-        async resume() {
-            if (!rec) return;
-            await rec.startAsync();
-        },
-
-        async finish() {
-            if (!rec) return null;
-
-            try {
-                await rec.stopAndUnloadAsync();
-                return rec.getURI() ?? null;
-            } finally {
-                rec = null;
-            }
-        },
-
-        async discard() {
-            await cleanup();
-        },
-    };
+    autoResumeAfterInterruption: true,
+  };
 }
