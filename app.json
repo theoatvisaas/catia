@@ -15,7 +15,16 @@
         {}
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@siteed/expo-audio-studio",
+        {
+          "enableBackgroundAudio": true,
+          "enableNotifications": true,
+          "enablePhoneStateHandling": true,
+          "enableDeviceDetection": false
+        }
+      ]
     ],
     "android": {
       "softwareKeyboardLayoutMode": "pan",
