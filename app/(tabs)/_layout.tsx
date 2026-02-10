@@ -1,9 +1,8 @@
 // app/(tabs)/_layout.tsx
-import { RecorderProvider } from "@/providers/RecordProvider";
 import { Tabs, useSegments } from "expo-router";
 import { Mic, ScrollText, Settings } from "lucide-react-native";
 import React from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -18,7 +17,7 @@ export default function TabsLayout() {
   const border = "#E2E8F0";
 
   return (
-    <RecorderProvider>
+    <SafeAreaView style={{flex: 1}} edges={["top"]}>
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -34,7 +33,8 @@ export default function TabsLayout() {
               borderTopWidth: 1,
               paddingTop: 10,
               paddingBottom: 12 + insets.bottom,
-              height: 70 + insets.bottom,
+              height: 90 + insets.bottom,
+
             },
         }}
       >
@@ -68,6 +68,6 @@ export default function TabsLayout() {
           }}
         />
       </Tabs>
-    </RecorderProvider>
+    </SafeAreaView>
   );
 }
