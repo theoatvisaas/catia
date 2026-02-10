@@ -8,7 +8,24 @@
     "icon": "./assets/images/icon.png",
     "scheme": "catia",
     "userInterfaceStyle": "automatic",
-    "plugins": ["expo-router", ["@stripe/stripe-react-native", {}]],
+    "plugins": [
+      "expo-router",
+      [
+        "@stripe/stripe-react-native",
+        {}
+      ],
+      "expo-font",
+      "expo-web-browser",
+      [
+        "@siteed/expo-audio-studio",
+        {
+          "enableBackgroundAudio": true,
+          "enableNotifications": true,
+          "enablePhoneStateHandling": true,
+          "enableDeviceDetection": false
+        }
+      ]
+    ],
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.anonymous.catia"
