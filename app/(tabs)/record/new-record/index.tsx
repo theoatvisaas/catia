@@ -1,3 +1,4 @@
+import AudioPreviewPlayer from "@/components/app/record/AudioPreviewPlayer";
 import StopAction from "@/components/app/record/StopAction";
 import UploadRecord from "@/components/app/record/UploadRecord";
 import VoiceAction from "@/components/app/record/VoiceAction";
@@ -6,7 +7,6 @@ import { useRecorder } from "@/providers/RecordProvider";
 import { recordService } from "@/services/uploadRecordedAudio";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
-import { router } from "expo-router";
 import { Mic, TriangleAlert } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -33,6 +33,8 @@ export default function NewRecordScreen() {
     const [guardianName, setGuardianName] = useState("");
     const [sex, setSex] = useState<SexKey>(null);
     const [uploading, setUploading] = useState(false);
+
+    const [recordedUri, setRecordedUri] = useState<string | null>(null);
 
     const [stopOpen, setStopOpen] = useState(false);
     const [headerHeight, setHeaderHeight] = useState(0);
@@ -101,6 +103,8 @@ export default function NewRecordScreen() {
         const uri = await audio.finish();
         if (!uri) return;
 
+        setRecordedUri(uri);
+
         const durationMs = audio.durationMs ?? 0;
 
         setUploading(true);
@@ -116,10 +120,10 @@ export default function NewRecordScreen() {
             });
 
             setUploading(false);
-            router.replace("/history/loading");
+            //router.replace("/history/loading");
         } catch {
             setUploading(false);
-            router.replace("/history/loading");
+            //router.replace("/history/loading");
         }
     };
 
@@ -209,6 +213,9 @@ export default function NewRecordScreen() {
                             {isPaused ? "Continuar" : t("newRecord", "record")}
                         </Text>
                     </Pressable>
+
+                    {recordedUri && <AudioPreviewPlayer uri={recordedUri} />}
+
                 </View>
 
                 <View style={globalStyles.newRecordInfoRow}>

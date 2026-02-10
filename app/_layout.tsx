@@ -4,10 +4,12 @@ import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
+  const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE ?? "";
+
   return (
     <SafeAreaProvider>
       <StripeProvider
-        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE!}
+        publishableKey={publishableKey}
         merchantIdentifier="merchant.com.yourcompany"
       >
         <RecorderProvider>
