@@ -4,7 +4,7 @@ import UploadRecord from "@/components/app/record/UploadRecord";
 import VoiceAction from "@/components/app/record/VoiceAction";
 import { t } from "@/i18n";
 import { useRecorder } from "@/providers/RecordProvider";
-import { recordService } from "@/services/uploadRecordedAudio";
+import { useUploadStore } from "@/stores/record/useUploadStore";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
 import { Mic, TriangleAlert } from "lucide-react-native";
@@ -33,6 +33,9 @@ export default function NewRecordScreen() {
     const [guardianName, setGuardianName] = useState("");
     const [sex, setSex] = useState<SexKey>(null);
     const [uploading, setUploading] = useState(false);
+
+    const uploadRecording = useUploadStore((s) => s.uploadRecording);
+
 
     const [recordedUri, setRecordedUri] = useState<string | null>(null);
 
@@ -108,10 +111,8 @@ export default function NewRecordScreen() {
         const durationMs = audio.durationMs ?? 0;
 
         setUploading(true);
-        await new Promise((r) => setTimeout(r, 2500));
-
         try {
-            await recordService.uploadRecordedService({
+            await uploadRecording({
                 uri,
                 patientName,
                 guardianName,
@@ -120,10 +121,10 @@ export default function NewRecordScreen() {
             });
 
             setUploading(false);
-            //router.replace("/history/loading");
+            // router.replace("/history/loading");
         } catch {
             setUploading(false);
-            //router.replace("/history/loading");
+            // router.replace("/history/loading");
         }
     };
 
