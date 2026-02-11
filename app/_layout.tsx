@@ -1,3 +1,6 @@
+import "react-native-url-polyfill/auto";
+
+import { AuthProvider } from "@/providers/AuthProvider";
 import { RecorderProvider } from "@/providers/RecordProvider";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { Stack } from "expo-router";
@@ -12,9 +15,11 @@ export default function RootLayout() {
         publishableKey={publishableKey}
         merchantIdentifier="merchant.com.yourcompany"
       >
-        <RecorderProvider>
-          <Stack screenOptions={{ headerShown: false }} />
-        </RecorderProvider>
+        <AuthProvider>
+          <RecorderProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </RecorderProvider>
+        </AuthProvider>
       </StripeProvider>
     </SafeAreaProvider>
   );

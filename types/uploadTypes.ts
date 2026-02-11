@@ -2,6 +2,7 @@ export type SexKey = "male" | "female" | null;
 
 export type UploadRecordingInput = {
     uri: string;
+    userId: string;
     patientName: string;
     guardianName: string;
     sex: SexKey;

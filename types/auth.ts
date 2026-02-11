@@ -11,8 +11,24 @@ export type LoginResponse = AuthSessionResponse;
 export type SignUpResponse = AuthSessionResponse;
 
 export type MeResponse = {
-  userId: string;
+  user: { id: string; email?: string | null };
+  client?: {
+    id: string;
+    name: string;
+    status: boolean;
+    funnel_phase: string;
+    stripe_customer_id?: string | null;
+  } | null;
 };
+
+export type StoredMe = MeResponse;
+
+export type StoredUser = {
+  id: string;
+  email?: string | null;
+};
+
+
 
 export type ChangePasswordResponse = {
   message: string;

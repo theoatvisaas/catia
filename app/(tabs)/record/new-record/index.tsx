@@ -4,6 +4,7 @@ import UploadRecord from "@/components/app/record/UploadRecord";
 import VoiceAction from "@/components/app/record/VoiceAction";
 import { t } from "@/i18n";
 import { useRecorder } from "@/providers/RecordProvider";
+import { getUser } from "@/services/auth/userStorage";
 import { useUploadStore } from "@/stores/record/useUploadStore";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
@@ -103,30 +104,37 @@ export default function NewRecordScreen() {
     const handleFinish = async () => {
         setStopOpen(false);
 
-        const uri = await audio.finish();
-        if (!uri) return;
-
-        setRecordedUri(uri);
-
-        const durationMs = audio.durationMs ?? 0;
-
-        setUploading(true);
         try {
+            const user = await getUser();
+            console.log(user?.user)
+            if (!user?.user.id) {
+                console.log("User not found in storage");
+                return;
+            }
+
+            const uri = await audio.finish();
+            if (!uri) return;
+
+            setRecordedUri(uri);
+
+            const durationMs = audio.durationMs ?? 0;
+            setUploading(true);
+
             await uploadRecording({
                 uri,
+                userId: user.user.id,
                 patientName,
                 guardianName,
                 sex,
                 durationMs,
             });
-
+        } catch (e) {
+            console.log("handleFinish error:", e);
+        } finally {
             setUploading(false);
-            // router.replace("/history/loading");
-        } catch {
-            setUploading(false);
-            // router.replace("/history/loading");
         }
     };
+
 
     const handleDiscard = async () => {
         setStopOpen(false);
@@ -255,7 +263,7 @@ export default function NewRecordScreen() {
             </ScrollView>
 
             <VoiceAction
-                visible={recording}
+                visible={recording && !stopOpen}
                 elapsed={elapsedLabel}
                 maxDuration={maxDurationLabel}
                 onStop={handleStop}

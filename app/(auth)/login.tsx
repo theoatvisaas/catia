@@ -1,3 +1,5 @@
+import { saveUser } from "@/services/auth/userStorage";
+import { authService } from "@/services/authService";
 import { useAuthStore } from "@/stores/auth/useAuthStore";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -46,6 +48,10 @@ export default function Login() {
     try {
       const response = await login({ email, password });
       if (!response) return;
+
+      const me = await authService.me();
+
+      await saveUser(me);
 
       router.replace("/record");
     } catch {

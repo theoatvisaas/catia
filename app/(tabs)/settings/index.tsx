@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { clearUser } from "@/services/auth/userStorage";
 import { useAuthStore } from "@/stores/auth/useAuthStore";
 import { useClientStore } from "@/stores/client/useClientStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -472,6 +473,7 @@ export default function SettingsScreen() {
                         onPress={async () => {
                             useClientStore.getState().clearClient();
                             await AsyncStorage.removeItem("client-store");
+                            await clearUser();
                             await logout();
                             router.replace("/login");
                         }}
