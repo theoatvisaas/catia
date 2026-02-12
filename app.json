@@ -22,7 +22,14 @@
           "enableBackgroundAudio": true,
           "enableNotifications": true,
           "enablePhoneStateHandling": true,
-          "enableDeviceDetection": false
+          "enableDeviceDetection": false,
+          "iosBackgroundModes": {
+            "useAudio": true,
+            "useProcessing": true
+          },
+          "iosConfig": {
+            "microphoneUsageDescription": "CatIA precisa de acesso ao microfone para gravar sessões de áudio."
+          }
         }
       ]
     ],
@@ -39,7 +46,8 @@
     "ios": {
       "bundleIdentifier": "com.anonymous.catia",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "CatIA precisa de acesso ao microfone para gravar sessões de áudio."
       }
     }
   }

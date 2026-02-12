@@ -1,4 +1,4 @@
-import type { RecordingConfig } from "@siteed/expo-audio-studio";
+import type { AudioDataEvent, RecordingConfig } from "@siteed/expo-audio-studio";
 
 export type AudioRecorder = {
     start: () => Promise<void>;
@@ -8,7 +8,9 @@ export type AudioRecorder = {
     discard: () => Promise<void>;
 };
 
-export function createSpeechRecordingConfig(): RecordingConfig {
+export function createSpeechRecordingConfig(opts?: {
+    onAudioStream?: (event: AudioDataEvent) => Promise<void>;
+}): RecordingConfig {
   return {
     sampleRate: 16000,
     channels: 1,
@@ -18,13 +20,23 @@ export function createSpeechRecordingConfig(): RecordingConfig {
     interval: 1000,
 
     output: {
-      primary: { enabled: false },
+      primary: { enabled: true },
       compressed: {
         enabled: true,
         format: "aac",
         bitrate: 64000,
       },
     },
+
+    ios: {
+      audioSession: {
+        category: "PlayAndRecord",
+        mode: "Default",
+        categoryOptions: ["AllowBluetooth", "DefaultToSpeaker"],
+      },
+    },
+
+    onAudioStream: opts?.onAudioStream,
 
     autoResumeAfterInterruption: true,
   };
