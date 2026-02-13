@@ -20,7 +20,7 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.md, // ✅ padrão global 16
-    justifyContent: "center",
+    //justifyContent: "center",
   },
 
   container: {
@@ -2287,12 +2287,24 @@ export const globalStyles = StyleSheet.create({
   editTranscriptionEditorCard: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.lg,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.sm,
     backgroundColor: colors.surface,
     overflow: "hidden",
+
+    flex: 1,
+    minHeight: 0
   },
+
+  editTranscriptionEditorBody: {
+    flex: 1,
+    minHeight: 0,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 12,
+  },
+
 
   editTranscriptionToolbar: {
     flexDirection: "row",
@@ -2350,9 +2362,10 @@ export const globalStyles = StyleSheet.create({
   editTranscriptionInput: {
     ...typography.body,
     color: colors.textPrimary,
-    fontSize: 12,
+    fontSize: 10,
     lineHeight: 18,
     minHeight: 260,
+    marginBottom: 0
   },
 
   editTranscriptionFooter: {
@@ -2579,8 +2592,8 @@ export const globalStyles = StyleSheet.create({
 
   exampleSectionBadgeWrap: {
     position: "absolute",
-    right: -6,  
-    top: -10,   
+    right: -6,
+    top: -10,
     alignItems: "flex-end",
     justifyContent: "center",
   },
@@ -2651,65 +2664,65 @@ export const globalStyles = StyleSheet.create({
   },
 
   // =========================
-// FORGOT PASSWORD
-// =========================
-forgotHeader: {
-  alignItems: "center",
-  marginBottom: 18,
-},
+  // FORGOT PASSWORD
+  // =========================
+  forgotHeader: {
+    alignItems: "center",
+    marginBottom: 18,
+  },
 
-forgotLogoWrap: {
-  flexDirection: "row",
-  alignItems: "flex-start",
-  justifyContent: "center",
-  marginBottom: 14,
-},
+  forgotLogoWrap: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
 
-forgotLogoBar: {
-  borderRadius: 999,
-  opacity: 0.9,
-},
+  forgotLogoBar: {
+    borderRadius: 999,
+    opacity: 0.9,
+  },
 
-forgotTitle: {
-  ...typography.body,
-  color: colors.textPrimary,
-  fontWeight: "800",
-  fontSize: 22,
-  lineHeight: 26,
-  textAlign: "center",
-  marginBottom: 8,
-},
+  forgotTitle: {
+    ...typography.body,
+    color: colors.textPrimary,
+    fontWeight: "800",
+    fontSize: 22,
+    lineHeight: 26,
+    textAlign: "center",
+    marginBottom: 8,
+  },
 
-forgotSubtitle: {
-  ...typography.body,
-  color: colors.textSecondary,
-  fontSize: 12,
-  lineHeight: 16,
-  textAlign: "center",
-  paddingHorizontal: spacing.lg,
-},
+  forgotSubtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: "center",
+    paddingHorizontal: spacing.lg,
+  },
 
-forgotPrimaryButton: {
-  backgroundColor: colors.primary,
-  paddingVertical: 12,
-  borderRadius: 12,
-  alignItems: "center",
-  marginTop: 10,
-},
+  forgotPrimaryButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 10,
+  },
 
-forgotPrimaryButtonText: {
-  ...typography.body,
-  color: colors.onPrimary,
-  fontWeight: "800",
-  fontSize: 12,
-},
+  forgotPrimaryButtonText: {
+    ...typography.body,
+    color: colors.onPrimary,
+    fontWeight: "800",
+    fontSize: 12,
+  },
 
-forgotLinkRow: {
-  flexDirection: "row",
-  justifyContent: "center",
-  alignItems: "center",
-  marginTop: 14,
-},
+  forgotLinkRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 14,
+  },
 
 
 });

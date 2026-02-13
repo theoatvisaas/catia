@@ -157,10 +157,11 @@ const pt = {
     messageGreeting: "Olá! Tudo bem?",
     messageDefaultBody:
       "Aqui é o Dr. Théo, médico-veterinário.\n\n" +
-      "Estou entrando em contato para reforçar que sigo totalmente à disposição para esclarecer qualquer dúvida, oferecer orientações adicionais ou ajudar no que for necessário em relação à saúde e ao bem-estar do seu animalzinho.\n\n" +
-      "Neste momento, não há informações clínicas específicas ou orientações de tratamento a serem repassadas, pois a gravação recebida não continha dados objetivos sobre o paciente, como sinais clínicos, diagnóstico, exames ou condutas recomendadas.\n\n" +
-      "Assim que houver novas informações ou, caso você deseje complementar com mais detalhes, ficarei feliz em analisar e orientar da melhor forma possível.\n\n" +
-      "Sempre que precisar, conte comigo para cuidar do seu pet com atenção, responsabilidade e carinho.",
+      "Estou entrando em contato para reforçar que sigo totalmente à disposição para esclarecer qualquer dúvida, oferecer orientações adicionais ou ajudar no que for necessário em relação à saúde e ao bem-estar do seu animalzinho. Meu compromisso é sempre fornecer informações seguras, responsáveis e baseadas em critérios técnicos, buscando tranquilidade e confiança para você no cuidado diário.\n\n" +
+      "Neste momento, não há informações clínicas específicas ou orientações de tratamento a serem repassadas, pois a gravação recebida não continha dados objetivos sobre o paciente, como sinais clínicos, diagnóstico, exames ou condutas recomendadas. Para que eu possa oferecer uma orientação mais direcionada e precisa, é importante contar com detalhes claros sobre o quadro apresentado, histórico recente, tempo de evolução dos sintomas e quaisquer exames já realizados.\n\n" +
+      "Assim que houver novas informações ou, caso você deseje complementar com mais detalhes, ficarei feliz em analisar com atenção e orientar da melhor forma possível, indicando os próximos passos adequados, seja para acompanhamento em casa ou, se necessário, para avaliação presencial.\n\n" +
+      "Sempre que precisar, conte comigo para cuidar do seu pet com atenção, responsabilidade, empatia e carinho, priorizando sempre a saúde e o bem-estar dele."
+    ,
     print: "Imprimir",
     editEnd: "Editar",
 

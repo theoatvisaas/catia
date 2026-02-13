@@ -3,6 +3,7 @@
 import { t } from "@/i18n";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
+import { renderWhatsText } from "@/utils/renderWhatsText";
 import * as Clipboard from "expo-clipboard";
 import * as Print from "expo-print";
 import { Copy, Pencil, Printer } from "lucide-react-native";
@@ -121,9 +122,17 @@ export default function TranscriptionReady({
                     {t("historyTranscription", "messageGreeting")}
                 </Text>
 
-                <Text style={globalStyles.historyReadyCardBody}>
-                    {messageValue}
-                </Text>
+                {renderWhatsText(messageValue, {
+                    body: globalStyles.historyReadyCardBody,
+                    title: [
+                        globalStyles.historyReadyCardBody,
+                        { fontSize: 16, fontWeight: "800", marginTop: 8, marginBottom: 6 },
+                    ],
+                    bold: { fontWeight: "800" },
+                    italic: { fontStyle: "italic" },
+                    strike: { textDecorationLine: "line-through" },
+                })}
+
 
                 <View style={globalStyles.historyReadyActionsWrap}>
                     <TouchableOpacity

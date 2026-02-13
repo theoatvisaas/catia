@@ -30,7 +30,7 @@ export default function HistoryLoadingScreen() {
     const [advancedActionsOpen, setAdvancedActionsOpen] = useState(false);
     const [editPatientOpen, setEditPatientOpen] = useState(false);
     const [editTranscriptionOpen, setEditTranscriptionOpen] = useState(false);
-    const [editableText, setEditableText] = useState("");
+    const [editableText, setEditableText] = useState(t("historyTranscription", "messageDefaultBody"));
 
 
 
@@ -100,8 +100,8 @@ export default function HistoryLoadingScreen() {
                     <PreparingReports />
                 ) : (
                     <TranscriptionReady
+                        messageText={editableText}
                         onEditSummary={() => {
-                            setEditableText(t("historyTranscription", "messageDefaultBody"));
                             setEditTranscriptionOpen(true);
                         }}
                     />
@@ -168,12 +168,10 @@ export default function HistoryLoadingScreen() {
                 initialText={editableText}
                 onClose={() => setEditTranscriptionOpen(false)}
                 onSave={(text) => {
-
                     setEditableText(text);
                     setEditTranscriptionOpen(false);
                 }}
             />
-
 
         </View>
     );
