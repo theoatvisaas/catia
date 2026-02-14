@@ -1,3 +1,5 @@
+/** @deprecated Use consultationTypes.ts instead. This file is retained for legacy session migration. */
+
 export type ChunkStatus = "pending" | "uploading" | "uploaded" | "failed";
 
 export type ChunkMeta = {

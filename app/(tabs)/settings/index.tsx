@@ -21,6 +21,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { t } from "../../../i18n";
 import { globalStyles } from "../../../styles/theme";
 import { colors } from "../../../styles/theme/colors";
+import { DevTestPanel } from "@/components/dev/DevTestPanel";
 
 
 type PopupKind = "success" | "error";
@@ -484,6 +485,15 @@ export default function SettingsScreen() {
                         </Text>
                     </Pressable>
                 </View>
+
+                {__DEV__ && (
+                    <>
+                        <View style={globalStyles.settingsDivider} />
+                        <View style={globalStyles.settingsSection}>
+                            <DevTestPanel />
+                        </View>
+                    </>
+                )}
             </ScrollView>
 
             <ToastPopup

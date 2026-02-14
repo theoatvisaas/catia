@@ -1,7 +1,10 @@
-import { supabase } from "@/lib/supabase/supabase";
+import { getAuthenticatedSupabase } from "@/lib/supabase/supabase";
+import { ts } from "@/lib/logger";
 import { guessContentTypeByExt, guessExtension } from "@/types/fileHelpers";
 import { decode } from "base64-arraybuffer";
 import * as FileSystem from "expo-file-system";
+
+const TAG = "[UploadAudio]";
 
 type UploadAudioBase64Args = {
     fileUri: string;
@@ -16,25 +19,27 @@ export async function uploadAudioBase64({
     storagePath,
     upsert = false,
 }: UploadAudioBase64Args) {
-    console.log("🚀 [UPLOAD START]");
-    console.log("fileUri:", fileUri);
-    console.log("bucket:", bucket);
-    console.log("storagePath:", storagePath);
-    // 1) Ler arquivo local como base64
+    console.log(`${ts(TAG)} START | fileUri=${fileUri} | bucket=${bucket} | storagePath=${storagePath}`);
+
+    // 1) Read local file as base64
     const base64 = await FileSystem.readAsStringAsync(fileUri, {
         encoding: FileSystem.EncodingType.Base64,
     });
+    console.log(`${ts(TAG)} Read file: ${base64.length} base64 chars`);
 
-    // 2) Converter base64 -> ArrayBuffer (não fica como string no upload)
+    // 2) Convert base64 -> ArrayBuffer
     const arrayBuffer = decode(base64);
+    console.log(`${ts(TAG)} Decoded to ${arrayBuffer.byteLength} bytes`);
 
-    // 3) Inferir content-type
+    // 3) Infer content-type
     const ext = guessExtension(fileUri);
     const contentType = guessContentTypeByExt(ext);
+    console.log(`${ts(TAG)} contentType=${contentType} (ext=${ext})`);
 
-    console.log("📄 contentType:", contentType);
+    // 4) Get authenticated Supabase client
+    const supabase = await getAuthenticatedSupabase();
 
-    // 4) Upload no Supabase Storage
+    // 5) Upload to Supabase Storage
     const { data, error } = await supabase.storage
         .from(bucket)
         .upload(storagePath, arrayBuffer, {
@@ -44,9 +49,10 @@ export async function uploadAudioBase64({
         });
 
     if (error) {
-        console.log("UPLOAD ERROR:", JSON.stringify(error, null, 2));
+        console.error(`${ts(TAG)} ❌ Upload error: ${error.message}`);
         throw error;
     }
 
+    console.log(`${ts(TAG)} ✅ Uploaded: ${data.path}`);
     return data;
 }

@@ -8,8 +8,8 @@ import { getUser } from "@/services/auth/userStorage";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
 import { Mic, TriangleAlert } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, AppState, Linking, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type SexKey = "male" | "female" | null;
@@ -45,6 +45,10 @@ export default function NewRecordScreen() {
 
     const elapsedLabel = formatHMS(audio.durationMs ?? 0);
     const maxDurationLabel = "01:30:00";
+
+    // Track whether alerts were already shown to avoid duplicate alerts
+    const streamDeadAlertShown = useRef(false);
+    const diskFullAlertShown = useRef(false);
 
     const reports = useMemo(
         () => [
@@ -87,8 +91,67 @@ export default function NewRecordScreen() {
                 guardianName,
                 sex,
             });
-        } catch (e) {
-            console.log("handleStart error:", e);
+        } catch (e: any) {
+            const msg = e?.message ?? String(e);
+            console.log("handleStart error:", msg);
+
+            // Check if it's a notification permission error
+            if (msg.toLowerCase().includes("permissao de notificacao") || msg.toLowerCase().includes("notification")) {
+                const notifInstructions = Platform.OS === "ios"
+                    ? "Para ativar as notificações:\n\n" +
+                      "1. Abra os Ajustes do iPhone\n" +
+                      "2. Role para baixo e toque em \"CatIA\"\n" +
+                      "3. Toque em \"Notificações\"\n" +
+                      "4. Ative \"Permitir Notificações\"\n" +
+                      "5. Volte ao app e tente novamente"
+                    : "Para ativar as notificações:\n\n" +
+                      "1. Abra as Configurações do celular\n" +
+                      "2. Toque em \"Apps\" → \"CatIA\"\n" +
+                      "3. Toque em \"Notificações\"\n" +
+                      "4. Ative \"Mostrar notificações\"\n" +
+                      "5. Volte ao app e tente novamente";
+
+                Alert.alert(
+                    "Permissão de Notificação Necessária",
+                    "O CatIA precisa enviar notificações para avisar sobre problemas durante a gravação, mesmo quando você está em outro app.\n\n" + notifInstructions,
+                    [
+                        { text: "Cancelar", style: "cancel" },
+                        {
+                            text: "Abrir Ajustes",
+                            onPress: () => Linking.openSettings(),
+                        },
+                    ]
+                );
+                return;
+            }
+
+            // Check if it's a mic permission error
+            if (msg.toLowerCase().includes("permissao de microfone") || msg.toLowerCase().includes("permission")) {
+                const instructions = Platform.OS === "ios"
+                    ? "Para ativar o microfone:\n\n" +
+                      "1. Abra os Ajustes do iPhone\n" +
+                      "2. Role para baixo e toque em \"CatIA\"\n" +
+                      "3. Ative a opção \"Microfone\"\n" +
+                      "4. Volte ao app e tente novamente"
+                    : "Para ativar o microfone:\n\n" +
+                      "1. Abra as Configurações do celular\n" +
+                      "2. Toque em \"Apps\" → \"CatIA\"\n" +
+                      "3. Toque em \"Permissões\"\n" +
+                      "4. Ative \"Microfone\"\n" +
+                      "5. Volte ao app e tente novamente";
+
+                Alert.alert(
+                    "Permissão de Microfone Necessária",
+                    "O CatIA precisa de acesso ao microfone para gravar consultas.\n\n" + instructions,
+                    [
+                        { text: "Cancelar", style: "cancel" },
+                        {
+                            text: "Abrir Ajustes",
+                            onPress: () => Linking.openSettings(),
+                        },
+                    ]
+                );
+            }
         }
     };
 
@@ -99,6 +162,120 @@ export default function NewRecordScreen() {
 
         setStopOpen(true);
     };
+
+    // ── Alert: stream died (watchdog detected no audio) ─────
+    // Defers Alert.alert() until the app is in the foreground to avoid
+    // rendering the alert off-screen (iOS bug when alert fires in background).
+    useEffect(() => {
+        if (audio.streamDead && recording && !streamDeadAlertShown.current) {
+            streamDeadAlertShown.current = true;
+
+            const showStreamDeadAlert = () => {
+                Alert.alert(
+                    "Problema na Gravação",
+                    "O microfone parou de enviar áudio. Isso pode acontecer quando outro app usa o microfone ou quando há um problema de hardware.\n\n" +
+                    "O que foi gravado até agora está salvo.",
+                    [
+                        {
+                            text: "Tentar novamente",
+                            onPress: async () => {
+                                audio.resetStreamDead();
+                                streamDeadAlertShown.current = false;
+                                try { await audio.resume(); } catch {}
+                            },
+                        },
+                        {
+                            text: "Parar e Salvar",
+                            onPress: async () => {
+                                setStopOpen(false);
+                                setUploading(true);
+                                try {
+                                    await audio.finish();
+                                } catch (err) {
+                                    console.log("streamDead finish error:", err);
+                                } finally {
+                                    setUploading(false);
+                                }
+                            },
+                        },
+                    ],
+                    { cancelable: false }
+                );
+            };
+
+            if (AppState.currentState === "active") {
+                showStreamDeadAlert();
+            } else {
+                const sub = AppState.addEventListener("change", (state) => {
+                    if (state === "active") {
+                        sub.remove();
+                        showStreamDeadAlert();
+                    }
+                });
+                return () => sub.remove();
+            }
+        }
+        // Reset when not recording anymore
+        if (!recording) {
+            streamDeadAlertShown.current = false;
+        }
+    }, [audio.streamDead, recording]);
+
+    // ── Alert: disk full ────────────────────────────────────
+    // Same deferred pattern as streamDead above.
+    useEffect(() => {
+        if (audio.diskFull && recording && !diskFullAlertShown.current) {
+            diskFullAlertShown.current = true;
+
+            const showDiskFullAlert = () => {
+                Alert.alert(
+                    "Problema ao Salvar Gravação",
+                    "Houve um erro ao salvar os dados no dispositivo. O armazenamento pode estar cheio.\n\n" +
+                    "Recomendamos parar a gravação para não perder o que já foi gravado.",
+                    [
+                        {
+                            text: "Tentar novamente",
+                            onPress: async () => {
+                                audio.resetDiskFull();
+                                diskFullAlertShown.current = false;
+                                try { await audio.resume(); } catch {}
+                            },
+                        },
+                        {
+                            text: "Parar e Salvar",
+                            onPress: async () => {
+                                setStopOpen(false);
+                                setUploading(true);
+                                try {
+                                    await audio.finish();
+                                } catch (err) {
+                                    console.log("diskFull finish error:", err);
+                                } finally {
+                                    setUploading(false);
+                                }
+                            },
+                        },
+                    ],
+                    { cancelable: false }
+                );
+            };
+
+            if (AppState.currentState === "active") {
+                showDiskFullAlert();
+            } else {
+                const sub = AppState.addEventListener("change", (state) => {
+                    if (state === "active") {
+                        sub.remove();
+                        showDiskFullAlert();
+                    }
+                });
+                return () => sub.remove();
+            }
+        }
+        if (!recording) {
+            diskFullAlertShown.current = false;
+        }
+    }, [audio.diskFull, recording]);
 
     const handleContinue = async () => {
         setStopOpen(false);

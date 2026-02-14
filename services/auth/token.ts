@@ -56,6 +56,10 @@ export async function refreshSession(refreshToken: string) {
 }
 
 
+// Mutex: prevents concurrent refresh requests from using the same
+// single-use refresh token, which would cause "refresh_token_already_used".
+let refreshInFlight: Promise<string | undefined> | null = null;
+
 export async function getValidAccessToken(): Promise<string | undefined> {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
@@ -65,17 +69,30 @@ export async function getValidAccessToken(): Promise<string | undefined> {
 
     const now = Math.floor(Date.now() / 1000);
 
+    // Token still valid — return it directly
     if (session.expires_at && now < session.expires_at - 30) {
         return session.access_token as string;
     }
 
+    // Token expired — need refresh
     if (!session.refresh_token) return undefined;
 
-    const refreshed = await refreshSession(session.refresh_token);
+    // If a refresh is already in-flight, wait for it instead of
+    // sending a duplicate request with the same refresh token.
+    if (refreshInFlight) {
+        return refreshInFlight;
+    }
 
-    if (!refreshed?.access_token) return undefined;
+    refreshInFlight = (async () => {
+        try {
+            const refreshed = await refreshSession(session.refresh_token);
+            if (!refreshed?.access_token) return undefined;
+            await saveSession(refreshed);
+            return refreshed.access_token as string;
+        } finally {
+            refreshInFlight = null;
+        }
+    })();
 
-    await saveSession(refreshed);
-
-    return refreshed.access_token as string;
+    return refreshInFlight;
 }

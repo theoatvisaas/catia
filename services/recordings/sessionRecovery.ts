@@ -1,9 +1,15 @@
+/**
+ * @deprecated This file is superseded by consultationSyncService.ts + startupRecovery.ts.
+ * Kept only for reference during migration period.
+ */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system";
-import { supabase } from "@/lib/supabase/supabase";
+import { getAuthenticatedSupabase } from "@/lib/supabase/supabase";
 import { uploadChunkBase64 } from "./uploadChunkBase64";
-import { CHUNK_BUFFER_TEMP_PATH } from "./chunkBufferManager";
 import type { RecordingSessionState } from "@/types/chunkTypes";
+
+/** Legacy fallback path for sessions without a sessionId */
+const LEGACY_TEMP_PATH = `${FileSystem.documentDirectory}chunks/buffer_temp.b64`;
 
 const SESSION_STORAGE_KEY = "@catia:activeChunkSession";
 
@@ -43,11 +49,11 @@ export async function recoverTempBuffer(
     session: RecordingSessionState
 ): Promise<{ storagePath: string; sizeBytes: number } | null> {
     try {
-        const info = await FileSystem.getInfoAsync(CHUNK_BUFFER_TEMP_PATH);
+        const info = await FileSystem.getInfoAsync(LEGACY_TEMP_PATH);
         if (!info.exists || info.size === 0) return null;
 
         // Read the temp file — it contains newline-separated base64 PCM chunks
-        const raw = await FileSystem.readAsStringAsync(CHUNK_BUFFER_TEMP_PATH, {
+        const raw = await FileSystem.readAsStringAsync(LEGACY_TEMP_PATH, {
             encoding: FileSystem.EncodingType.UTF8,
         });
 
@@ -97,6 +103,7 @@ export async function finalizePartialSession(
     const uploadedChunks = session.chunks.filter((c) => c.status === "uploaded");
     const totalChunks = uploadedChunks.length + (recovered ? 1 : 0);
 
+    const supabase = await getAuthenticatedSupabase();
     const { error } = await supabase.from("recording_sessions").insert({
         session_id: session.sessionId,
         user_id: session.userId,
@@ -134,6 +141,7 @@ export async function discardIncompleteSession(
         .map((c) => c.storagePath);
 
     if (pathsToDelete.length > 0) {
+        const supabase = await getAuthenticatedSupabase();
         const { error } = await supabase.storage
             .from(session.bucket)
             .remove(pathsToDelete);
@@ -153,9 +161,9 @@ export async function discardIncompleteSession(
 
 async function deleteTempBufferFile(): Promise<void> {
     try {
-        const info = await FileSystem.getInfoAsync(CHUNK_BUFFER_TEMP_PATH);
+        const info = await FileSystem.getInfoAsync(LEGACY_TEMP_PATH);
         if (info.exists) {
-            await FileSystem.deleteAsync(CHUNK_BUFFER_TEMP_PATH, { idempotent: true });
+            await FileSystem.deleteAsync(LEGACY_TEMP_PATH, { idempotent: true });
         }
     } catch {
         // ignore

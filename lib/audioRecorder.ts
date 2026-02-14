@@ -20,9 +20,9 @@ export function createSpeechRecordingConfig(opts?: {
     interval: 1000,
 
     output: {
-      primary: { enabled: true },
+      primary: { enabled: false },
       compressed: {
-        enabled: true,
+        enabled: false,
         format: "aac",
         bitrate: 64000,
       },
