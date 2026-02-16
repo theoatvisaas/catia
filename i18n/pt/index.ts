@@ -134,6 +134,13 @@ const pt = {
     report4Title: "Mensagem de Encaminhamento:",
     report4Desc: "Caso o paciente precise ser encaminhado para outro especialista, será gerada automaticamente uma mensagem com uma breve descrição do caso para facilitar a comunicação com o próximo profissional.",
     guideFooter: "Esses relatórios são padrões no sistema, mas nos planos Individual Pro e Planos para Clínicas e Hospitais é possível criar relatórios personalizados.",
+
+    // Resume recording
+    resumeTitle: "Retomar Gravação",
+    resumeButton: "Retomar Gravação",
+    resumeBannerTitle: "Retomando gravação interrompida",
+    resumePreviewLoading: "Carregando preview...",
+    resumePreviewError: "Não foi possível carregar o áudio",
   },
 
   historyLoading: {
@@ -200,6 +207,13 @@ const pt = {
     lunaSubtitle: "Gata persa, 2 anos. Sinais: lambedura excessiva, alopecia, dermatite. Exame físico: peso adequado, ...",
     maxTitle: "Max",
     maxSubtitle: "Golden, 5 anos, apatia, perda de apetite, vômito (3d). Exame: desidratação leve, mucosas...",
+
+    // Resume recording
+    interruptedBadge: "Gravação interrompida",
+    interruptedMessage: "Gravação interrompida",
+    interruptedQuestion: "Gravação interrompida. O que deseja fazer?",
+    resumeRecording: "Continuar Gravação",
+    finalizeRecording: "Finalizar Gravação",
   },
 
   editPatient: {

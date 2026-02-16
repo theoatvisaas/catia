@@ -7,6 +7,8 @@ type Props = {
     status: ConsultationSyncStatus;
     uploadedChunks?: number;
     totalChunks?: number;
+    /** When true, shows "Gravação interrompida" badge instead of sync status */
+    interrupted?: boolean;
 };
 
 const STATUS_CONFIG: Record<
@@ -35,7 +37,16 @@ const STATUS_CONFIG: Record<
     },
 };
 
-export function SyncStatusBadge({ status, uploadedChunks, totalChunks }: Props) {
+export function SyncStatusBadge({ status, uploadedChunks, totalChunks, interrupted }: Props) {
+    // Interrupted recording takes priority over sync status
+    if (interrupted) {
+        return (
+            <View style={[styles.badge, { backgroundColor: "#FEE2E2" }]}>
+                <Text style={[styles.text, { color: colors.error }]}>Gravação interrompida</Text>
+            </View>
+        );
+    }
+
     const config = STATUS_CONFIG[status];
 
     const label =

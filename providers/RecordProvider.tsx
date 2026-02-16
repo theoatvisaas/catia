@@ -35,6 +35,8 @@ export type StartSessionMeta = {
     patientName: string;
     guardianName: string;
     sex: SexKey;
+    /** When set, resumes an interrupted recording instead of creating a new one. */
+    resumeSessionId?: string;
 };
 
 type RecorderCtxValue = {
@@ -121,8 +123,10 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
 
     const start = useCallback(
         async (meta: StartSessionMeta) => {
+            const isResuming = !!meta.resumeSessionId;
             console.log(
-                `${ts(TAG)} start() | patient=${meta.patientName} | guardian=${meta.guardianName} | sex=${meta.sex} | userId=${meta.userId}`
+                `${ts(TAG)} start() | ${isResuming ? "RESUME" : "NEW"} | patient=${meta.patientName} | guardian=${meta.guardianName} | sex=${meta.sex} | userId=${meta.userId}` +
+                (isResuming ? ` | resumeSessionId=${meta.resumeSessionId}` : "")
             );
 
             if (isRecording && !isPaused) {
@@ -130,20 +134,18 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            // Guard: check for active recording in store
-            console.log(`${ts(TAG)} start() | Checking for active recording in store...`);
-            const hasActive = store.getState().hasActiveRecording();
-            if (hasActive) {
-                const active = store.getState().getActiveRecording();
-                if (active) {
-                    console.warn(
-                        `${ts(TAG)} start() | ⚠️ Active recording exists: ${active.sessionId} (${active.chunks.length} chunks). Auto-finalizing.`
-                    );
-                    store.getState().updateConsultation(active.sessionId, {
-                        userFinalized: true,
-                        finishedAt: Date.now(),
-                    });
-                    store.getState().recomputeSyncStatus(active.sessionId);
+            // Log if there's a previous interrupted recording (but do NOT auto-finalize —
+            // the user must explicitly choose "Finalizar" or "Retomar" via the History screen)
+            if (!isResuming) {
+                const hasActive = store.getState().hasActiveRecording();
+                if (hasActive) {
+                    const active = store.getState().getActiveRecording();
+                    if (active) {
+                        console.log(
+                            `${ts(TAG)} start() | ℹ️ Previous interrupted recording exists: ${active.sessionId} ` +
+                            `(${active.chunks.length} chunks). Leaving it as-is — user can manage via History.`
+                        );
+                    }
                 }
             }
 
@@ -190,22 +192,58 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
             setDiskFull(false);
             audioEventCountRef.current = 0;
 
-            // Generate session ID
-            const sessionId = generateSessionId();
+            // ── Session setup: resume vs new ──────────────────
+            let sessionId: string;
+            let initialChunkIndex = 0;
+            let initialStreamPosition = 0;
+
+            if (isResuming) {
+                // Resume: use existing session
+                sessionId = meta.resumeSessionId!;
+                const consultation = store.getState().getConsultation(sessionId);
+                if (!consultation) {
+                    console.error(`${ts(TAG)} start() | ❌ RESUME ABORTED — session ${sessionId} not found in store`);
+                    throw new Error(`Consulta ${sessionId} não encontrada`);
+                }
+
+                initialChunkIndex = consultation.nextChunkIndex;
+
+                // Calculate stream position from the last chunk
+                const sortedChunks = [...consultation.chunks].sort((a, b) => b.order - a.order);
+                if (sortedChunks.length > 0) {
+                    const lastChunk = sortedChunks[0];
+                    initialStreamPosition = lastChunk.streamPosition + lastChunk.sizeBytes;
+                }
+
+                console.log(
+                    `${ts(TAG)} start() | RESUME session=${sessionId} | existingChunks=${consultation.chunks.length} | ` +
+                    `nextChunkIndex=${initialChunkIndex} | streamPos=${initialStreamPosition}`
+                );
+
+                // Mark as not finalized (recording is active again)
+                store.getState().updateConsultation(sessionId, {
+                    userFinalized: false,
+                    finishedAt: undefined,
+                });
+            } else {
+                // New: generate fresh session
+                sessionId = generateSessionId();
+                console.log(`${ts(TAG)} start() | Generated sessionId: ${sessionId}`);
+
+                // Create consultation in store
+                console.log(`${ts(TAG)} start() | Creating consultation in store...`);
+                store.getState().createConsultation({
+                    sessionId,
+                    userId: meta.userId,
+                    patientName: meta.patientName,
+                    guardianName: meta.guardianName,
+                    sex: meta.sex,
+                    bucket: BUCKET,
+                });
+            }
+
             setActiveSessionId(sessionId);
             sessionMetaRef.current = meta;
-            console.log(`${ts(TAG)} start() | Generated sessionId: ${sessionId}`);
-
-            // Create consultation in store
-            console.log(`${ts(TAG)} start() | Creating consultation in store...`);
-            store.getState().createConsultation({
-                sessionId,
-                userId: meta.userId,
-                patientName: meta.patientName,
-                guardianName: meta.guardianName,
-                sex: meta.sex,
-                bucket: BUCKET,
-            });
 
             // Initialize chunk upload queue
             console.log(`${ts(TAG)} start() | Initializing upload queue for session ${sessionId}`);
@@ -226,11 +264,17 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
             watchdog.start();
 
             // Create chunk buffer manager
-            console.log(`${ts(TAG)} start() | Creating chunk buffer manager (flush every 30 events)`);
+            console.log(
+                `${ts(TAG)} start() | Creating chunk buffer manager (flush every 30 events` +
+                (isResuming ? ` | initialChunk=${initialChunkIndex} | initialStreamPos=${initialStreamPosition}` : "") +
+                `)`
+            );
             const buffer = new ChunkBufferManager({
                 sessionId,
                 flushIntervalChunks: 30,
-                onFlush: (data) => {
+                initialChunkIndex,
+                initialStreamPosition,
+                onFlush: async (data) => {
                     // Add chunk to store as pending_local
                     const consultation = store.getState().getConsultation(sessionId);
                     const order = consultation?.chunks.length ?? 0;
@@ -253,9 +297,9 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
                         streamPosition: data.streamPositionStart,
                     });
 
-                    // Enqueue for upload
+                    // Enqueue for upload — AWAIT to guarantee local save completes before returning
                     console.log(`${ts(TAG)} onFlush() | Enqueuing chunk #${data.chunkIndex} for upload`);
-                    chunkUploadQueue.enqueue({
+                    await chunkUploadQueue.enqueue({
                         base64Chunks: data.base64Chunks,
                         chunkIndex: data.chunkIndex,
                         order,
@@ -334,7 +378,7 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
 
             console.log(`${ts(TAG)} start() | Calling startRecording()...`);
             await startRecording(config);
-            console.log(`${ts(TAG)} start() | ✅ RECORDING STARTED | session=${sessionId} | bucket=${BUCKET}`);
+            console.log(`${ts(TAG)} start() | ✅ RECORDING ${isResuming ? "RESUMED" : "STARTED"} | session=${sessionId} | bucket=${BUCKET}`);
         },
         [isRecording, isPaused, startRecording]
     );
@@ -432,14 +476,20 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
             );
 
             if (drained) {
-                // All chunks uploaded — finalize
-                console.log(`${ts(TAG)} finish() | All chunks uploaded — calling finalizeConsultation()...`);
+                // Queue drained — attempt to finalize
+                console.log(`${ts(TAG)} finish() | Queue drained — calling finalizeConsultation()...`);
                 try {
-                    await finalizeConsultation(sessionId);
-                    console.log(`${ts(TAG)} finish() | ✅ Consultation FINALIZED as synced`);
+                    const finalized = await finalizeConsultation(sessionId);
+                    if (finalized) {
+                        console.log(`${ts(TAG)} finish() | ✅ Consultation FINALIZED as synced`);
+                    } else {
+                        console.warn(`${ts(TAG)} finish() | ⚠️ finalizeConsultation returned false — not all chunks uploaded`);
+                        store.getState().recomputeSyncStatus(sessionId);
+                    }
                 } catch (err) {
                     const msg = err instanceof Error ? err.message : String(err);
                     console.warn(`${ts(TAG)} finish() | ⚠️ Finalization error: ${msg}`);
+                    store.getState().recomputeSyncStatus(sessionId);
                 }
             } else {
                 // Some chunks still pending — will be synced later via autoSyncAll()

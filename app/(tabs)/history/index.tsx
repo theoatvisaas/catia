@@ -2,12 +2,13 @@ import { RecoveryBanner } from "@/components/app/history/RecoveryBanner";
 import { SyncStatusBadge } from "@/components/app/history/SyncStatusBadge";
 import { t } from "@/i18n";
 import { useConsultationStore } from "@/stores/consultation/useConsultationStore";
-import { retrySyncConsultation, finalizeConsultation, discardConsultation } from "@/services/recordings/consultationSyncService";
+import { retrySyncConsultation, finalizeConsultation } from "@/services/recordings/consultationSyncService";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
 import React, { useCallback, useMemo, useState } from "react";
-import { ActionSheetIOS, Alert, FlatList, Platform, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import type { Consultation } from "@/types/consultationTypes";
 
 // ── Helpers ─────────────────────────────────────────────────
@@ -68,6 +69,7 @@ function groupByDate(consultations: Consultation[]): DateGroup[] {
 
 export default function History() {
     const insets = useSafeAreaInsets();
+    const router = useRouter();
     const consultationsMap = useConsultationStore((s) => s.consultations);
     const [syncing, setSyncing] = useState<string | null>(null);
 
@@ -90,42 +92,19 @@ export default function History() {
                 return;
             }
 
-            // Show action options for local/partial
-            const actions = ["Sincronizar", "Descartar", "Cancelar"];
-
-            if (Platform.OS === "ios") {
-                ActionSheetIOS.showActionSheetWithOptions(
-                    {
-                        options: actions,
-                        destructiveButtonIndex: 1,
-                        cancelButtonIndex: 2,
-                        title: consultation.patientName || "Consulta",
-                    },
-                    async (index) => {
-                        if (index === 0) await handleSync(consultation.sessionId);
-                        if (index === 1) await handleDiscard(consultation.sessionId);
-                    }
-                );
-            } else {
-                Alert.alert(
-                    consultation.patientName || "Consulta",
-                    "O que deseja fazer com esta consulta?",
-                    [
-                        { text: "Cancelar", style: "cancel" },
-                        {
-                            text: "Descartar",
-                            style: "destructive",
-                            onPress: () => handleDiscard(consultation.sessionId),
-                        },
-                        {
-                            text: "Sincronizar",
-                            onPress: () => handleSync(consultation.sessionId),
-                        },
-                    ]
-                );
+            // ── Interrupted recording (not finalized) → navigate to recording screen ──
+            if (!consultation.userFinalized) {
+                router.push({
+                    pathname: "/record/new-record",
+                    params: { resumeSessionId: consultation.sessionId },
+                });
+                return;
             }
+
+            // ── Finalized but not synced → direct sync ──
+            handleSync(consultation.sessionId);
         },
-        []
+        [router]
     );
 
     const handleSync = async (sessionId: string) => {
@@ -139,14 +118,6 @@ export default function History() {
             console.warn("[History] Sync failed:", err);
         } finally {
             setSyncing(null);
-        }
-    };
-
-    const handleDiscard = async (sessionId: string) => {
-        try {
-            await discardConsultation(sessionId);
-        } catch (err) {
-            console.warn("[History] Discard failed:", err);
         }
     };
 
@@ -210,6 +181,7 @@ export default function History() {
                                                     status={consultation.syncStatus}
                                                     uploadedChunks={uploaded}
                                                     totalChunks={consultation.chunks.length}
+                                                    interrupted={!consultation.userFinalized}
                                                 />
                                             </View>
 

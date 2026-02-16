@@ -31,6 +31,8 @@ export class ChunkBufferManager {
     private tempPath: string;
     private pushCount = 0;
     private diskCheckInterval = 10; // check disk every N pushes
+    private initialChunkIndex = 0;
+    private initialStreamPosition = 0;
 
     constructor(opts: {
         sessionId: string;
@@ -38,6 +40,10 @@ export class ChunkBufferManager {
         onFlush: FlushCallback;
         onDiskFull?: () => void;
         onPersistError?: (error: Error) => void;
+        /** Starting chunk index (used when resuming an interrupted recording). Default: 0 */
+        initialChunkIndex?: number;
+        /** Starting stream position in bytes (used when resuming). Default: 0 */
+        initialStreamPosition?: number;
     }) {
         this.sessionId = opts.sessionId;
         this.flushThreshold = opts.flushIntervalChunks ?? 30;
@@ -45,7 +51,16 @@ export class ChunkBufferManager {
         this.onDiskFull = opts.onDiskFull;
         this.onPersistError = opts.onPersistError;
         this.tempPath = getTempBufferPath(opts.sessionId);
-        console.log(`${ts(TAG)} Created | session=${opts.sessionId} | flushEvery=${this.flushThreshold}s | tempPath=${this.tempPath}`);
+
+        // Store initial values for start() to use
+        this.initialChunkIndex = opts.initialChunkIndex ?? 0;
+        this.initialStreamPosition = opts.initialStreamPosition ?? 0;
+
+        console.log(
+            `${ts(TAG)} Created | session=${opts.sessionId} | flushEvery=${this.flushThreshold}s` +
+            ` | initialChunk=${this.initialChunkIndex} | initialStreamPos=${this.initialStreamPosition}` +
+            ` | tempPath=${this.tempPath}`
+        );
     }
 
     /** Returns the path to the temp buffer file for this session. */
@@ -55,9 +70,9 @@ export class ChunkBufferManager {
 
     async start(): Promise<void> {
         this.buffer = [];
-        this.chunkIndex = 0;
-        this.streamPositionAtBufferStart = 0;
-        this.currentStreamPosition = 0;
+        this.chunkIndex = this.initialChunkIndex;
+        this.streamPositionAtBufferStart = this.initialStreamPosition;
+        this.currentStreamPosition = this.initialStreamPosition;
         this.pushCount = 0;
         this.active = true;
 
@@ -67,7 +82,9 @@ export class ChunkBufferManager {
         console.log(`${ts(TAG)} start() | Chunk dir ready`);
 
         await this.deleteTempFile();
-        console.log(`${ts(TAG)} start() | Buffer manager active`);
+        console.log(
+            `${ts(TAG)} start() | Buffer manager active | chunkIndex=${this.chunkIndex} | streamPos=${this.currentStreamPosition}`
+        );
     }
 
     /** Called from onAudioStream. Accumulates PCM audio data and persists to disk. */

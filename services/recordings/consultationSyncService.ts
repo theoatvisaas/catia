@@ -3,21 +3,182 @@ import { getAuthenticatedSupabase } from "@/lib/supabase/supabase";
 import { useConsultationStore } from "@/stores/consultation/useConsultationStore";
 import { getNetworkStatus } from "../network/networkMonitor";
 import { ensureValidSession } from "./tokenGuard";
-import { readLocalChunk, deleteLocalChunk, deleteSessionChunks, getTempBufferPath } from "./chunkStorage";
+import { readLocalChunk, deleteSessionChunks, getTempBufferPath } from "./chunkStorage";
 import { uploadChunkBase64 } from "./uploadChunkBase64";
 import { chunkUploadQueue } from "./chunkUploadQueue";
 import * as FileSystem from "expo-file-system";
-import type { ChunkRecord } from "@/types/consultationTypes";
+import type { ChunkRecord, Consultation } from "@/types/consultationTypes";
 
 const TAG = "[SyncService]";
+
+// ── Parallel upload config ──────────────────────────────
+
+/** Max concurrent chunk uploads. 3 balances bandwidth saturation vs. memory (~7.5MB peak). */
+const MAX_PARALLEL_UPLOADS = 3;
+
+type ChunkUploadResult = {
+    chunkIndex: number;
+    order: number;
+    success: boolean;
+    error?: string;
+    elapsed?: number;
+    sizeBytes?: number;
+};
+
+// ── Single-chunk upload helper ──────────────────────────
+
+/**
+ * Upload a single chunk: read local file → decode → upload → update store.
+ * Returns a result object (never throws).
+ */
+async function uploadSingleChunk(
+    sessionId: string,
+    chunk: ChunkRecord,
+    consultation: Consultation,
+): Promise<ChunkUploadResult> {
+    const store = useConsultationStore.getState();
+
+    // Check network before this chunk
+    const netCheck = getNetworkStatus();
+    if (!netCheck.isConnected) {
+        console.warn(`${ts(TAG)} uploadSingleChunk() | Lost network before chunk #${chunk.index}`);
+        store.updateChunkStatus(sessionId, chunk.index, "failed", {
+            lastError: "Network lost during upload batch",
+            retryCount: chunk.retryCount + 1,
+        });
+        return { chunkIndex: chunk.index, order: chunk.order, success: false, error: "No network" };
+    }
+
+    // Read local data
+    if (!chunk.localFilePath) {
+        console.warn(`${ts(TAG)} uploadSingleChunk() | Chunk #${chunk.index} has NO local file`);
+        store.updateChunkStatus(sessionId, chunk.index, "failed", {
+            lastError: "No local file path",
+        });
+        return { chunkIndex: chunk.index, order: chunk.order, success: false, error: "No local file" };
+    }
+
+    let base64Chunks: string[];
+    try {
+        base64Chunks = await readLocalChunk(chunk.localFilePath);
+        console.log(
+            `${ts(TAG)} uploadSingleChunk() | Read ${base64Chunks.length} base64 lines from chunk #${chunk.index}`
+        );
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn(`${ts(TAG)} uploadSingleChunk() | ❌ Failed to read chunk #${chunk.index}: ${msg}`);
+        store.updateChunkStatus(sessionId, chunk.index, "failed", {
+            lastError: `Local file unreadable: ${msg}`,
+            retryCount: chunk.retryCount + 1,
+        });
+        return { chunkIndex: chunk.index, order: chunk.order, success: false, error: msg };
+    }
+
+    if (base64Chunks.length === 0) {
+        console.warn(`${ts(TAG)} uploadSingleChunk() | Chunk #${chunk.index} local file is EMPTY`);
+        store.updateChunkStatus(sessionId, chunk.index, "failed", {
+            lastError: "Local file empty",
+        });
+        return { chunkIndex: chunk.index, order: chunk.order, success: false, error: "Empty file" };
+    }
+
+    // Upload
+    const totalB64Len = base64Chunks.reduce((sum, s) => sum + s.length, 0);
+    const estimatedSize = Math.ceil((totalB64Len * 3) / 4);
+
+    console.log(
+        `${ts(TAG)} uploadSingleChunk() | UPLOADING chunk #${chunk.index} (order=${chunk.order}) | ${base64Chunks.length} items | ~${estimatedSize}B | path=${chunk.storagePath}`
+    );
+
+    try {
+        const t0 = Date.now();
+        const result = await uploadChunkBase64({
+            base64Chunks,
+            bucket: consultation.bucket,
+            storagePath: chunk.storagePath,
+        });
+        const elapsed = Date.now() - t0;
+
+        if (!result?.path) {
+            throw new Error("Upload returned no path");
+        }
+
+        store.updateChunkStatus(sessionId, chunk.index, "uploaded");
+
+        console.log(
+            `${ts(TAG)} uploadSingleChunk() | ✅ Chunk #${chunk.index} (order=${chunk.order}) SYNCED | ~${estimatedSize}B | ${elapsed}ms`
+        );
+
+        return { chunkIndex: chunk.index, order: chunk.order, success: true, elapsed, sizeBytes: estimatedSize };
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn(`${ts(TAG)} uploadSingleChunk() | ❌ Chunk #${chunk.index} FAILED: ${msg}`);
+        store.updateChunkStatus(sessionId, chunk.index, "failed", {
+            lastError: msg,
+            retryCount: chunk.retryCount + 1,
+        });
+        return { chunkIndex: chunk.index, order: chunk.order, success: false, error: msg };
+    }
+}
+
+// ── Parallel upload pool ────────────────────────────────
+
+/**
+ * Upload multiple chunks in parallel with a concurrency limit.
+ *
+ * Uses a worker-pool pattern: N workers pull from a shared queue.
+ * All chunks are marked "uploading" upfront for UI feedback.
+ * Each chunk's result is independent — no halt-on-failure.
+ */
+async function parallelUploadChunks(
+    sessionId: string,
+    chunks: ChunkRecord[],
+    consultation: Consultation,
+    concurrency: number = MAX_PARALLEL_UPLOADS,
+): Promise<ChunkUploadResult[]> {
+    const store = useConsultationStore.getState();
+    const results: ChunkUploadResult[] = [];
+
+    // Mark all chunks as "uploading" upfront for immediate UI feedback
+    for (const chunk of chunks) {
+        store.updateChunkStatus(sessionId, chunk.index, "uploading");
+    }
+
+    console.log(
+        `${ts(TAG)} parallelUploadChunks() | ${chunks.length} chunks | concurrency=${Math.min(concurrency, chunks.length)}`
+    );
+
+    // Shared index counter — each worker increments atomically (JS is single-threaded)
+    let nextIdx = 0;
+
+    async function worker(): Promise<void> {
+        while (nextIdx < chunks.length) {
+            const idx = nextIdx++;
+            if (idx >= chunks.length) break;
+
+            const result = await uploadSingleChunk(sessionId, chunks[idx], consultation);
+            results.push(result);
+        }
+    }
+
+    // Launch workers (capped at chunk count)
+    const workerCount = Math.min(concurrency, chunks.length);
+    const workers = Array.from({ length: workerCount }, () => worker());
+    await Promise.all(workers);
+
+    return results;
+}
 
 // ── Retry a single consultation ──────────────────────────
 
 /**
- * Attempt to upload all non-uploaded chunks for a consultation, **in order**.
- * Reads chunk data from local files and uploads them sequentially.
+ * Attempt to upload all non-uploaded chunks for a consultation in parallel.
+ * Reads chunk data from local files and uploads up to MAX_PARALLEL_UPLOADS
+ * concurrently.
  *
  * Returns `true` if all chunks are now uploaded, `false` otherwise.
+ * On partial failure, successful chunks stay "uploaded" — only failed ones
+ * are retried on the next call.
  */
 export async function retrySyncConsultation(sessionId: string): Promise<boolean> {
     console.log(`${ts(TAG)} retrySyncConsultation(${sessionId}) | START`);
@@ -63,103 +224,39 @@ export async function retrySyncConsultation(sessionId: string): Promise<boolean>
         return true;
     }
 
-    for (const chunk of pending) {
-        // Re-check network before each chunk
-        const netCheck = getNetworkStatus();
-        if (!netCheck.isConnected) {
-            console.warn(`${ts(TAG)} retrySyncConsultation() | Lost network before chunk #${chunk.index}`);
-            return false;
-        }
+    // ── Parallel upload ──
+    const t0 = Date.now();
+    const results = await parallelUploadChunks(sessionId, pending, consultation);
+    const elapsed = Date.now() - t0;
 
-        // Read local data
-        if (!chunk.localFilePath) {
-            console.warn(
-                `${ts(TAG)} retrySyncConsultation() | Chunk #${chunk.index} (order=${chunk.order}) has NO local file — skipping`
-            );
-            continue;
-        }
+    const succeeded = results.filter((r) => r.success);
+    const failed = results.filter((r) => !r.success);
 
-        console.log(
-            `${ts(TAG)} retrySyncConsultation() | Reading local chunk #${chunk.index} (order=${chunk.order}) from: ${chunk.localFilePath}`
-        );
-
-        let base64Chunks: string[];
-        try {
-            base64Chunks = await readLocalChunk(chunk.localFilePath);
+    // Log detailed results per chunk
+    for (const r of results) {
+        if (r.success) {
             console.log(
-                `${ts(TAG)} retrySyncConsultation() | Read ${base64Chunks.length} base64 lines from chunk #${chunk.index}`
+                `${ts(TAG)} retrySyncConsultation() | ✅ Chunk #${r.chunkIndex} (order=${r.order}) | ${r.elapsed}ms | ~${r.sizeBytes}B`
             );
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            console.warn(
-                `${ts(TAG)} retrySyncConsultation() | ❌ Failed to read local chunk #${chunk.index}: ${msg}`
-            );
-            store.updateChunkStatus(sessionId, chunk.index, "failed", {
-                lastError: "Local file unreadable",
-                retryCount: chunk.retryCount + 1,
-            });
-            return false; // halt — preserve order
-        }
-
-        if (base64Chunks.length === 0) {
-            console.warn(
-                `${ts(TAG)} retrySyncConsultation() | ❌ Chunk #${chunk.index} local file is EMPTY`
-            );
-            store.updateChunkStatus(sessionId, chunk.index, "failed", {
-                lastError: "Local file empty",
-            });
-            return false;
-        }
-
-        // Upload
-        const totalB64Len = base64Chunks.reduce((sum, s) => sum + s.length, 0);
-        const estimatedSize = Math.ceil((totalB64Len * 3) / 4);
-
-        console.log(
-            `${ts(TAG)} retrySyncConsultation() | UPLOADING chunk #${chunk.index} (order=${chunk.order}) | ${base64Chunks.length} items | ~${estimatedSize}B | path=${chunk.storagePath}`
-        );
-        store.updateChunkStatus(sessionId, chunk.index, "uploading");
-
-        try {
-            const t0 = Date.now();
-            const result = await uploadChunkBase64({
-                base64Chunks,
-                bucket: consultation.bucket,
-                storagePath: chunk.storagePath,
-            });
-
-            const elapsed = Date.now() - t0;
-
-            if (!result?.path) {
-                throw new Error("Upload returned no path");
-            }
-
-            store.updateChunkStatus(sessionId, chunk.index, "uploaded");
-
-            // Delete local file after successful upload
-            console.log(`${ts(TAG)} retrySyncConsultation() | Deleting local file: ${chunk.localFilePath}`);
-            await deleteLocalChunk(chunk.localFilePath);
-
+        } else {
             console.log(
-                `${ts(TAG)} retrySyncConsultation() | ✅ Chunk #${chunk.index} (order=${chunk.order}) SYNCED | ~${estimatedSize}B | ${elapsed}ms | path=${result.path}`
+                `${ts(TAG)} retrySyncConsultation() | ❌ Chunk #${r.chunkIndex} (order=${r.order}) | error: ${r.error}`
             );
-        } catch (err) {
-            const msg = err instanceof Error ? err.message : String(err);
-            console.warn(
-                `${ts(TAG)} retrySyncConsultation() | ❌ Chunk #${chunk.index} upload FAILED: ${msg}`
-            );
-            store.updateChunkStatus(sessionId, chunk.index, "failed", {
-                lastError: msg,
-                retryCount: chunk.retryCount + 1,
-            });
-            return false; // halt — preserve order
         }
     }
+
+    console.log(
+        `${ts(TAG)} retrySyncConsultation() | Parallel upload done | ${succeeded.length} succeeded, ${failed.length} failed | ${elapsed}ms total`
+    );
+
+    // Local chunk files are NOT deleted here — cleanup happens exclusively
+    // in finalizeConsultation() after ALL chunks are uploaded and the
+    // recording_session is created in Supabase.
 
     store.recomputeSyncStatus(sessionId);
     const finalStatus = store.getConsultation(sessionId)?.syncStatus;
     console.log(`${ts(TAG)} retrySyncConsultation(${sessionId}) | DONE — syncStatus=${finalStatus}`);
-    return true;
+    return failed.length === 0;
 }
 
 // ── Resume partial session via upload queue ──────────────
@@ -234,14 +331,14 @@ export async function resumePartialSession(sessionId: string): Promise<void> {
  * After all chunks are uploaded, save metadata to `recording_sessions`
  * table and clean up local files. Marks consultation as `synced`.
  */
-export async function finalizeConsultation(sessionId: string): Promise<void> {
+export async function finalizeConsultation(sessionId: string): Promise<boolean> {
     console.log(`${ts(TAG)} finalizeConsultation(${sessionId}) | START`);
 
     const store = useConsultationStore.getState();
     const consultation = store.getConsultation(sessionId);
     if (!consultation) {
         console.warn(`${ts(TAG)} finalizeConsultation() | No consultation found for ${sessionId}`);
-        return;
+        return false;
     }
 
     // Guard: skip empty sessions (0 chunks = no audio recorded)
@@ -251,7 +348,7 @@ export async function finalizeConsultation(sessionId: string): Promise<void> {
             syncStatus: "discarded",
             lastError: "Sessão vazia — nenhum áudio gravado",
         });
-        return;
+        return false;
     }
 
     // Verify all chunks are uploaded
@@ -264,7 +361,7 @@ export async function finalizeConsultation(sessionId: string): Promise<void> {
 
     if (!allUploaded) {
         console.warn(`${ts(TAG)} finalizeConsultation() | ABORTED — not all chunks uploaded`);
-        return;
+        return false;
     }
 
     // ── Upsert metadata to recording_sessions table ──
@@ -319,6 +416,7 @@ export async function finalizeConsultation(sessionId: string): Promise<void> {
     });
 
     console.log(`${ts(TAG)} finalizeConsultation(${sessionId}) | ✅ DONE — consultation synced`);
+    return true;
 }
 
 // ── Discard consultation ─────────────────────────────────

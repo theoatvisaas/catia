@@ -1,5 +1,5 @@
 import { uploadChunkBase64 } from "./uploadChunkBase64";
-import { saveChunkLocally, deleteLocalChunk } from "./chunkStorage";
+import { saveChunkLocally } from "./chunkStorage";
 import { ensureValidSession } from "./tokenGuard";
 import { getNetworkStatus } from "../network/networkMonitor";
 
@@ -31,7 +31,7 @@ type ProgressListener = (progress: {
 
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 3000, 8000];
-const CONTINUOUS_RETRY_DELAY = 45_000; // 45s between continuous retries during recording
+const CONTINUOUS_RETRY_DELAY = 12_000; // 12s between continuous retries during recording
 
 export class ChunkUploadQueue {
     private queue: QueueItem[] = [];
@@ -137,12 +137,14 @@ export class ChunkUploadQueue {
             const start = Date.now();
 
             const check = () => {
-                if (this.queue.length === 0 && !this.processing) {
-                    console.log(`${ts(TAG)} waitForDrain() → drained OK (${Date.now() - start}ms)`);
-                    resolve(true);
-                } else if (this.halted || this.retryTimerId !== null) {
+                // CRITICAL: Check halt/retry FIRST — otherwise queue=0 + !processing
+                // resolves as "drained" even when a retry timer is pending.
+                if (this.halted || this.retryTimerId !== null) {
                     console.log(`${ts(TAG)} waitForDrain() → ${this.halted ? "halted" : "retry pending"} (${this.haltReason})`);
                     resolve(false);
+                } else if (this.queue.length === 0 && !this.processing) {
+                    console.log(`${ts(TAG)} waitForDrain() → drained OK (${Date.now() - start}ms)`);
+                    resolve(true);
                 } else if (Date.now() - start > timeoutMs) {
                     console.log(`${ts(TAG)} waitForDrain() → timeout (queueLen=${this.queue.length})`);
                     resolve(false);
@@ -262,8 +264,8 @@ export class ChunkUploadQueue {
 
         if (!network.isConnected) {
             console.log(`${ts(TAG)} Offline — scheduling retry for chunk #${item.chunkIndex} (already saved locally)`);
-            this.processing = false;
             this.scheduleRetry(item, "No network connection");
+            this.processing = false;
             return;
         }
 
@@ -272,8 +274,8 @@ export class ChunkUploadQueue {
         const validSession = await ensureValidSession();
         if (!validSession) {
             console.warn(`${ts(TAG)} Auth session invalid — scheduling retry for chunk #${item.chunkIndex} (already saved locally)`);
-            this.processing = false;
             this.scheduleRetry(item, "Auth session expired");
+            this.processing = false;
             return;
         }
         console.log(`${ts(TAG)} Auth session OK`);
@@ -338,13 +340,9 @@ export class ChunkUploadQueue {
                     `${ts(TAG)} ✅ Chunk #${item.chunkIndex} (order=${item.order}) UPLOADED | ${estimatedSize}B | ${elapsed}ms | path=${result.path}`
                 );
 
-                // Delete local file — chunk is now safely in Supabase
-                const uploadedChunk = store.getConsultation(sessionId)?.chunks.find(c => c.index === item.chunkIndex);
-                if (uploadedChunk?.localFilePath) {
-                    deleteLocalChunk(uploadedChunk.localFilePath).catch((err) =>
-                        console.warn(`${ts(TAG)} Failed to delete local chunk #${item.chunkIndex}:`, err)
-                    );
-                }
+                // Local chunk files are NOT deleted here — cleanup happens
+                // exclusively in finalizeConsultation() after ALL chunks are
+                // uploaded and the recording_session is created in Supabase.
                 break;
             } catch (err) {
                 const msg = errorMsg(err);
@@ -372,9 +370,12 @@ export class ChunkUploadQueue {
                 }
             }
 
+            // CRITICAL: Schedule retry BEFORE clearing processing flag.
+            // Otherwise waitForDrain() sees queue=0, processing=false, retryTimer=null
+            // and concludes "drained OK" in the gap before scheduleRetry sets the timer.
+            this.scheduleRetry(item, `Chunk ${item.chunkIndex} failed after ${MAX_RETRIES + 1} attempts`);
             this.processing = false;
             this.notifyProgress();
-            this.scheduleRetry(item, `Chunk ${item.chunkIndex} failed after ${MAX_RETRIES + 1} attempts`);
             return;
         }
 

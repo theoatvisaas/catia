@@ -5,12 +5,18 @@ import VoiceAction from "@/components/app/record/VoiceAction";
 import { t } from "@/i18n";
 import { useRecorder } from "@/providers/RecordProvider";
 import { getUser } from "@/services/auth/userStorage";
+import { useConsultationStore } from "@/stores/consultation/useConsultationStore";
+import { buildAudioPreview } from "@/services/recordings/audioPreviewBuilder";
 import { globalStyles } from "@/styles/theme";
 import { colors } from "@/styles/theme/colors";
 import { Mic, TriangleAlert } from "lucide-react-native";
+import * as FileSystem from "expo-file-system";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, AppState, Linking, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, AppState, Linking, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { retrySyncConsultation, finalizeConsultation } from "@/services/recordings/consultationSyncService";
+import { Check } from "lucide-react-native";
 
 type SexKey = "male" | "female" | null;
 
@@ -28,20 +34,73 @@ function formatHMS(ms: number) {
 
 export default function NewRecordScreen() {
     const insets = useSafeAreaInsets();
+    const router = useRouter();
+    const { resumeSessionId } = useLocalSearchParams<{ resumeSessionId?: string }>();
+    const isResuming = !!resumeSessionId;
 
     const [patientName, setPatientName] = useState("");
     const [guardianName, setGuardianName] = useState("");
     const [sex, setSex] = useState<SexKey>(null);
     const [uploading, setUploading] = useState(false);
+    const [finalizing, setFinalizing] = useState(false);
 
     const [recordedUri, setRecordedUri] = useState<string | null>(null);
 
     const [stopOpen, setStopOpen] = useState(false);
     const [headerHeight, setHeaderHeight] = useState(0);
 
+    // Resume mode state
+    const [previewUri, setPreviewUri] = useState<string | null>(null);
+    const [previewDuration, setPreviewDuration] = useState<number | null>(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
+    const [previewError, setPreviewError] = useState<string | null>(null);
+
     const audio = useRecorder();
     const recording = audio.isRecording;
     const isPaused = audio.isPaused;
+
+    // ── Pre-fill fields from existing consultation when resuming ──
+    useEffect(() => {
+        if (!resumeSessionId) return;
+
+        const consultation = useConsultationStore.getState().getConsultation(resumeSessionId);
+        if (!consultation) return;
+
+        setPatientName(consultation.patientName || "");
+        setGuardianName(consultation.guardianName || "");
+        setSex(consultation.sex || null);
+    }, [resumeSessionId]);
+
+    // ── Build audio preview when resuming ──
+    useEffect(() => {
+        if (!resumeSessionId) return;
+
+        let cancelled = false;
+        setPreviewLoading(true);
+        setPreviewError(null);
+
+        buildAudioPreview(resumeSessionId)
+            .then((result) => {
+                if (cancelled) return;
+                setPreviewUri(result?.uri ?? null);
+                setPreviewDuration(result?.durationSeconds ?? null);
+                setPreviewLoading(false);
+            })
+            .catch((err) => {
+                if (cancelled) return;
+                console.warn("[NewRecord] buildAudioPreview error:", err);
+                setPreviewError("Não foi possível carregar o áudio");
+                setPreviewLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+            // Cleanup temp preview file on unmount
+            if (previewUri) {
+                FileSystem.deleteAsync(previewUri, { idempotent: true }).catch(() => {});
+            }
+        };
+    }, [resumeSessionId]);
 
     const elapsedLabel = formatHMS(audio.durationMs ?? 0);
     const maxDurationLabel = "01:30:00";
@@ -90,6 +149,7 @@ export default function NewRecordScreen() {
                 patientName,
                 guardianName,
                 sex,
+                ...(resumeSessionId ? { resumeSessionId } : {}),
             });
         } catch (e: any) {
             const msg = e?.message ?? String(e);
@@ -155,6 +215,32 @@ export default function NewRecordScreen() {
         }
     };
 
+    // ── Finalize interrupted recording without resuming ──
+    const handleFinalizeResume = async () => {
+        if (!resumeSessionId || finalizing) return;
+
+        setFinalizing(true);
+        try {
+            const store = useConsultationStore.getState();
+            store.updateConsultation(resumeSessionId, {
+                userFinalized: true,
+                finishedAt: Date.now(),
+            });
+            store.recomputeSyncStatus(resumeSessionId);
+
+            // Attempt to sync
+            const allDone = await retrySyncConsultation(resumeSessionId);
+            if (allDone) {
+                await finalizeConsultation(resumeSessionId);
+            }
+        } catch (err) {
+            console.warn("[NewRecord] handleFinalizeResume error:", err);
+        } finally {
+            setFinalizing(false);
+            router.back();
+        }
+    };
+
     const handleStop = async () => {
         try {
             await audio.pause();
@@ -174,7 +260,7 @@ export default function NewRecordScreen() {
                 Alert.alert(
                     "Problema na Gravação",
                     "O microfone parou de enviar áudio. Isso pode acontecer quando outro app usa o microfone ou quando há um problema de hardware.\n\n" +
-                    "O que foi gravado até agora está salvo.",
+                    "Os últimos ~10 segundos podem não ter sido gravados. O restante está salvo.",
                     [
                         {
                             text: "Tentar novamente",
@@ -313,7 +399,9 @@ export default function NewRecordScreen() {
                 onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
                 style={[globalStyles.topHeader, { paddingTop: Math.max(insets.top, 10) }]}
             >
-                <Text style={globalStyles.topHeaderTitle}>{t("newRecord", "title")}</Text>
+                <Text style={globalStyles.topHeaderTitle}>
+                    {isResuming ? "Retomar Gravação" : t("newRecord", "title")}
+                </Text>
             </View>
 
             <ScrollView
@@ -332,8 +420,12 @@ export default function NewRecordScreen() {
                     <TextInput
                         value={patientName}
                         onChangeText={setPatientName}
-                        style={globalStyles.newRecordInput}
+                        style={[
+                            globalStyles.newRecordInput,
+                            isResuming && { opacity: 0.6, backgroundColor: "#F3F4F6" },
+                        ]}
                         placeholder=""
+                        editable={!isResuming}
                     />
 
                     <Text style={[globalStyles.newRecordFieldLabel, { marginTop: 14 }]}>
@@ -342,17 +434,22 @@ export default function NewRecordScreen() {
                     <TextInput
                         value={guardianName}
                         onChangeText={setGuardianName}
-                        style={globalStyles.newRecordInput}
+                        style={[
+                            globalStyles.newRecordInput,
+                            isResuming && { opacity: 0.6, backgroundColor: "#F3F4F6" },
+                        ]}
                         placeholder=""
+                        editable={!isResuming}
                     />
 
-                    <View style={globalStyles.newRecordSegmentRow}>
+                    <View style={[globalStyles.newRecordSegmentRow, isResuming && { opacity: 0.6 }]}>
                         <Pressable
                             style={[
                                 globalStyles.newRecordSegment,
                                 sex === "male" && globalStyles.newRecordSegmentActive,
                             ]}
-                            onPress={() => setSex("male")}
+                            onPress={() => !isResuming && setSex("male")}
+                            disabled={isResuming}
                         >
                             <Text
                                 style={[
@@ -369,7 +466,8 @@ export default function NewRecordScreen() {
                                 globalStyles.newRecordSegment,
                                 sex === "female" && globalStyles.newRecordSegmentActive,
                             ]}
-                            onPress={() => setSex("female")}
+                            onPress={() => !isResuming && setSex("female")}
+                            disabled={isResuming}
                         >
                             <Text
                                 style={[
@@ -382,10 +480,85 @@ export default function NewRecordScreen() {
                         </Pressable>
                     </View>
 
+                    {/* ── Resume banner with audio preview ── */}
+                    {isResuming && !recording && (
+                        <View style={{
+                            backgroundColor: "#FFF7ED",
+                            borderRadius: 12,
+                            padding: 14,
+                            marginTop: 16,
+                            borderWidth: 1,
+                            borderColor: "#FDBA74",
+                        }}>
+                            <Text style={{ fontSize: 14, fontWeight: "600", color: "#9A3412", marginBottom: 4 }}>
+                                Retomando gravação interrompida
+                            </Text>
+                            <Text style={{ fontSize: 12, color: "#C2410C", marginBottom: 8 }}>
+                                {(() => {
+                                    const consultation = useConsultationStore.getState().getConsultation(resumeSessionId!);
+                                    if (!consultation) return "";
+                                    const chunks = consultation.chunks.length;
+                                    const duration = consultation.durationMs > 0
+                                        ? formatHMS(consultation.durationMs)
+                                        : `${chunks * 30}s aprox.`;
+                                    return `${chunks} parte${chunks !== 1 ? "s" : ""} já gravada${chunks !== 1 ? "s" : ""} — ${duration}`;
+                                })()}
+                            </Text>
+
+                            {previewLoading && (
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                                    <ActivityIndicator size="small" color="#C2410C" />
+                                    <Text style={{ fontSize: 12, color: "#C2410C" }}>Carregando preview...</Text>
+                                </View>
+                            )}
+
+                            {previewError && (
+                                <Text style={{ fontSize: 12, color: colors.error }}>{previewError}</Text>
+                            )}
+
+                            {previewUri && !previewLoading && (
+                                <AudioPreviewPlayer
+                                    uri={previewUri}
+                                    durationSeconds={previewDuration ?? undefined}
+                                />
+                            )}
+                        </View>
+                    )}
+
+                    {/* ── Finalize button (resume mode only, before recording starts) ── */}
+                    {isResuming && !recording && (
+                        <Pressable
+                            onPress={handleFinalizeResume}
+                            disabled={finalizing}
+                            style={({ pressed }) => ({
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 8,
+                                marginTop: 16,
+                                paddingVertical: 14,
+                                borderRadius: 14,
+                                borderWidth: 2,
+                                borderColor: colors.primary,
+                                backgroundColor: pressed ? `${colors.primary}10` : "transparent",
+                                opacity: finalizing ? 0.6 : 1,
+                            })}
+                        >
+                            {finalizing ? (
+                                <ActivityIndicator size="small" color={colors.primary} />
+                            ) : (
+                                <Check size={20} color={colors.primary} />
+                            )}
+                            <Text style={{ fontSize: 16, fontWeight: "600", color: colors.primary }}>
+                                {finalizing ? "Finalizando..." : "Finalizar Gravação"}
+                            </Text>
+                        </Pressable>
+                    )}
+
                     <Pressable style={globalStyles.newRecordMicButton} onPress={handleStart}>
                         <Mic size={28} color={colors.onPrimary} />
                         <Text style={globalStyles.newRecordMicText}>
-                            {isPaused ? "Continuar" : t("newRecord", "record")}
+                            {isPaused ? "Continuar" : isResuming ? "Retomar Gravação" : t("newRecord", "record")}
                         </Text>
                     </Pressable>
 
