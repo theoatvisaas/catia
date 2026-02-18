@@ -50,57 +50,90 @@ function whatsappToHtml(input: string) {
 function htmlToWhatsapp(html: string) {
     let s = html || "";
 
-    // normaliza quebras
     s = s
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
         .replace(/<\/div>\s*<div[^>]*>/gi, "\n");
 
-    // code primeiro (pra não conflitar)
-    s = s.replace(/<code[^>]*>([\s\S]*?)<\/code>/gi, (_m, g1) => `\`\`\`${stripTags(g1)}\`\`\``);
+    // code primeiro
+    s = s.replace(
+        /<code[^>]*>([\s\S]*?)<\/code>/gi,
+        (_m, g1) => `\`\`\`${stripTags(g1)}\`\`\``
+    );
 
-    // strong/bold
-    s = s.replace(/<(strong|b)[^>]*>([\s\S]*?)<\/\1>/gi, (_m, _tag, g1) => `*${stripTags(g1)}*`);
+    s = s.replace(
+        /<span[^>]*style="[^"]*text-decoration\s*:\s*line-through[^"]*"[^>]*>([\s\S]*?)<\/span>/gi,
+        (_m, g1) => `<del>${g1}</del>`
+    );
 
-    // italic
-    s = s.replace(/<(em|i)[^>]*>([\s\S]*?)<\/\1>/gi, (_m, _tag, g1) => `_${stripTags(g1)}_`);
+    s = s.replace(
+        /<span[^>]*style='[^']*text-decoration\s*:\s*line-through[^']*'[^>]*>([\s\S]*?)<\/span>/gi,
+        (_m, g1) => `<del>${g1}</del>`
+    );
 
-    // strike
-    s = s.replace(/<(del|s|strike)[^>]*>([\s\S]*?)<\/\1>/gi, (_m, _tag, g1) => `~${stripTags(g1)}~`);
+    s = s.replace(
+        /<span[^>]*style="[^"]*(text-decoration-line|text-decoration)\s*:\s*line-through[^"]*"[^>]*>([\s\S]*?)<\/span>/gi,
+        (_m, _prop, g1) => `<del>${g1}</del>`
+    );
 
-    // remove tags restantes
+    s = s.replace(
+        /<span[^>]*style='[^']*(text-decoration-line|text-decoration)\s*:\s*line-through[^']*'[^>]*>([\s\S]*?)<\/span>/gi,
+        (_m, _prop, g1) => `<del>${g1}</del>`
+    );
+
+
+    // 1) bold+italic aninhado PRIMEIRO (senão o <strong> come o <em>)
+    s = s.replace(
+        /<(strong|b)[^>]*>\s*<(em|i)[^>]*>([\s\S]*?)<\/\2>\s*<\/\1>/gi,
+        (_m, _b, _i, g1) => `*_${(g1)}_*`
+    );
+
+    s = s.replace(
+        /<(em|i)[^>]*>\s*<(strong|b)[^>]*>([\s\S]*?)<\/\2>\s*<\/\1>/gi,
+        (_m, _i, _b, g1) => `*_${(g1)}_*`
+    );
+
+    // 2) strong/bold
+    s = s.replace(
+        /<(strong|b)[^>]*>([\s\S]*?)<\/\1>/gi,
+        (_m, _tag, g1) => `*${stripTags(g1)}*`
+    );
+
+    // 3) italic
+    s = s.replace(
+        /<(em|i)[^>]*>([\s\S]*?)<\/\1>/gi,
+        (_m, _tag, g1) => `_${stripTags(g1)}_`
+    );
+
+    // 4) strike
+    s = s.replace(
+        /<(del|s|strike)[^>]*>([\s\S]*?)<\/\1>/gi,
+        (_m, _tag, g1) => `~${stripTags(g1)}~`
+    );
+
     s = stripTags(s);
 
-    // decode entidades básicas
     s = s
         .replace(/&nbsp;/g, " ")
         .replace(/&amp;/g, "&")
         .replace(/&lt;/g, "<")
         .replace(/&gt;/g, ">");
 
-    // normaliza espaços/linhas
     s = s.replace(/\r\n/g, "\n").replace(/[ \t]+\n/g, "\n").trim();
 
     return s;
 }
 
+
 function stripTags(input: string) {
     return (input || "").replace(/<[^>]+>/g, "");
 }
 
-/**
- * Aplica a conversão "ao fechar marcador" dentro do HTML corrente.
- * Ex.: usuário digita *texto* -> vira <strong>texto</strong> automaticamente.
- *
- * Observação: funciona bem porque os marcadores entram como texto literal no HTML do editor.
- */
 function applyInlineMarkersInHtml(html: string) {
     let s = html || "";
 
-    // code primeiro (não atravessa tags; mas aceita multiline)
     s = s.replace(/```([\s\S]*?)```/g, (_m, g1) => `<code>${g1}</code>`);
 
-    // Evita atravessar linha (fica mais previsível)
     s = s.replace(/\*([^\n*]+)\*/g, (_m, g1) => `<strong>${g1}</strong>`);
     s = s.replace(/_([^\n_]+)_/g, (_m, g1) => `<em>${g1}</em>`);
     s = s.replace(/~([^\n~]+)~/g, (_m, g1) => `<del>${g1}</del>`);
@@ -137,10 +170,14 @@ export default function EditTranscription({
 
     async function handleSave() {
         const html = await editorRef.current?.getContentHtml();
+
         const whatsapp = htmlToWhatsapp((html ?? "").trim());
+
         onSave?.(whatsapp);
         onClose();
     }
+
+
 
     function handleChange(nextHtml: string) {
         if (isApplyingRef.current) {
@@ -150,14 +187,13 @@ export default function EditTranscription({
 
         const normalized = applyInlineMarkersInHtml(nextHtml);
 
-        // Se achou marcador fechado, converte e re-injeta no editor pra ficar visual na hora
         if (normalized !== nextHtml) {
             isApplyingRef.current = true;
             setHtmlValue(normalized);
 
             requestAnimationFrame(() => {
                 editorRef.current?.setContentHTML(normalized);
-                // libera no próximo frame (evita loop com onChange)
+
                 requestAnimationFrame(() => {
                     isApplyingRef.current = false;
                 });

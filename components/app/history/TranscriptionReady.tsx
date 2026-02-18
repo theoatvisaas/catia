@@ -49,7 +49,7 @@ export default function TranscriptionReady({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <style>
           body { font-family: -apple-system, system-ui, Arial; padding: 24px; }
-          h1 { font-size: 18px; margin: 0 0 16px 0; }
+          h1 { font-size: 20px; margin: 0 0 16px 0; }
           p { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
         </style>
       </head>
@@ -116,10 +116,6 @@ export default function TranscriptionReady({
             <View style={globalStyles.historyReadyCard}>
                 <Text style={globalStyles.historyReadyCardTitle}>
                     {t("historyTranscription", "messageTitle")}
-                </Text>
-
-                <Text style={globalStyles.historyReadyCardBody}>
-                    {t("historyTranscription", "messageGreeting")}
                 </Text>
 
                 {renderWhatsText(messageValue, {
