@@ -9,6 +9,8 @@ type Props = {
     totalChunks?: number;
     /** When true, shows "Gravação interrompida" badge instead of sync status */
     interrupted?: boolean;
+    /** When true, shows "Paciente Exemplo" badge (violet) */
+    isExample?: boolean;
 };
 
 const STATUS_CONFIG: Record<
@@ -16,14 +18,14 @@ const STATUS_CONFIG: Record<
     { label: string; bg: string; fg: string }
 > = {
     local: {
-        label: "Somente local",
-        bg: colors.surfaceMuted,
-        fg: colors.textTertiary,
+        label: "Envio pendente",
+        bg: "#FEE2E2",
+        fg: colors.error,
     },
     partial: {
-        label: "Parcial",
-        bg: colors.warningRecord,
-        fg: "#92600F",
+        label: "Envio incompleto",
+        bg: "#FEE2E2",
+        fg: colors.error,
     },
     synced: {
         label: "Sincronizado",
@@ -37,7 +39,19 @@ const STATUS_CONFIG: Record<
     },
 };
 
-export function SyncStatusBadge({ status, uploadedChunks, totalChunks, interrupted }: Props) {
+export function SyncStatusBadge({ status, uploadedChunks, totalChunks, interrupted, isExample }: Props) {
+    // Example consultation — show violet "Paciente Exemplo" badge
+    if (isExample) {
+        return (
+            <View style={[styles.badge, { backgroundColor: "#EDE9FE" }]}>
+                <Text style={[styles.text, { color: "#7C3AED" }]}>Paciente Exemplo</Text>
+            </View>
+        );
+    }
+
+    // Synced is the normal state — no badge needed
+    if (status === "synced" && !interrupted) return null;
+
     // Interrupted recording takes priority over sync status
     if (interrupted) {
         return (
@@ -49,14 +63,9 @@ export function SyncStatusBadge({ status, uploadedChunks, totalChunks, interrupt
 
     const config = STATUS_CONFIG[status];
 
-    const label =
-        status === "partial" && uploadedChunks != null && totalChunks != null
-            ? `${config.label} (${uploadedChunks}/${totalChunks})`
-            : config.label;
-
     return (
         <View style={[styles.badge, { backgroundColor: config.bg }]}>
-            <Text style={[styles.text, { color: config.fg }]}>{label}</Text>
+            <Text style={[styles.text, { color: config.fg }]}>{config.label}</Text>
         </View>
     );
 }

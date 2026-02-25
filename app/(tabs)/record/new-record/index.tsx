@@ -4,6 +4,7 @@ import UploadRecord from "@/components/app/record/UploadRecord";
 import VoiceAction from "@/components/app/record/VoiceAction";
 import { t } from "@/i18n";
 import { useRecorder } from "@/providers/RecordProvider";
+import { showToast } from "@/providers/ToastProvider";
 import { getUser } from "@/services/auth/userStorage";
 import { useConsultationStore } from "@/stores/consultation/useConsultationStore";
 import { buildAudioPreview } from "@/services/recordings/audioPreviewBuilder";
@@ -141,6 +142,7 @@ export default function NewRecordScreen() {
             const user = await getUser();
             if (!user?.user.id) {
                 console.log("User not found in storage");
+                showToast("Erro ao iniciar gravação. Faça login novamente.");
                 return;
             }
 
@@ -232,9 +234,12 @@ export default function NewRecordScreen() {
             const allDone = await retrySyncConsultation(resumeSessionId);
             if (allDone) {
                 await finalizeConsultation(resumeSessionId);
+            } else {
+                showToast("Consulta salva localmente. A sincronização continuará em segundo plano.");
             }
         } catch (err) {
             console.warn("[NewRecord] handleFinalizeResume error:", err);
+            showToast("Erro ao finalizar consulta. A sincronização continuará em segundo plano.");
         } finally {
             setFinalizing(false);
             router.back();
@@ -279,6 +284,7 @@ export default function NewRecordScreen() {
                                     await audio.finish();
                                 } catch (err) {
                                     console.log("streamDead finish error:", err);
+                                    showToast("Erro ao salvar gravação. Tente novamente.");
                                 } finally {
                                     setUploading(false);
                                 }
@@ -336,6 +342,7 @@ export default function NewRecordScreen() {
                                     await audio.finish();
                                 } catch (err) {
                                     console.log("diskFull finish error:", err);
+                                    showToast("Erro ao salvar gravação. Tente novamente.");
                                 } finally {
                                     setUploading(false);
                                 }
@@ -390,7 +397,11 @@ export default function NewRecordScreen() {
 
     const handleDiscard = async () => {
         setStopOpen(false);
-        await audio.discard();
+        try {
+            await audio.discard();
+        } catch {
+            showToast("Erro ao descartar gravação.");
+        }
     };
 
     return (

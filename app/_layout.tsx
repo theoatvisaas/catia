@@ -3,6 +3,7 @@ import "react-native-url-polyfill/auto";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ConsultationProvider } from "@/providers/ConsultationProvider";
 import { RecorderProvider } from "@/providers/RecordProvider";
+import { ToastProvider } from "@/providers/ToastProvider";
 import { initNotifications } from "@/services/notifications/notificationService";
 import { StripeProvider } from "@stripe/stripe-react-native";
 import { Stack } from "expo-router";
@@ -22,13 +23,15 @@ export default function RootLayout() {
         publishableKey={publishableKey}
         merchantIdentifier="merchant.com.yourcompany"
       >
-        <AuthProvider>
-          <ConsultationProvider>
-            <RecorderProvider>
-              <Stack screenOptions={{ headerShown: false }} />
-            </RecorderProvider>
-          </ConsultationProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <ConsultationProvider>
+              <RecorderProvider>
+                <Stack screenOptions={{ headerShown: false }} />
+              </RecorderProvider>
+            </ConsultationProvider>
+          </AuthProvider>
+        </ToastProvider>
       </StripeProvider>
     </SafeAreaProvider>
   );

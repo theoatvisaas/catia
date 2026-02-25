@@ -1,3 +1,4 @@
+import { showToast } from "@/providers/ToastProvider";
 import { useConsultationStore } from "@/stores/consultation/useConsultationStore";
 import { startNetworkMonitor, getNetworkStatus } from "../network/networkMonitor";
 import { migrateLegacySession } from "./migrateLegacySession";
@@ -41,6 +42,7 @@ export async function runStartupRecovery(): Promise<StartupRecoveryResult> {
                 const recovered = await recoverCrashedSession(consultation.sessionId);
                 if (recovered) {
                     result.recoveredSessions.push(consultation.sessionId);
+                    showToast("O app foi encerrado inesperadamente, porém, a gravação foi preservada com segurança.", "success");
                 }
             } catch (err) {
                 console.warn(

@@ -1,23 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthStore } from "@/stores/auth/useAuthStore";
 
-const STORAGE_KEY = "auth-session";
-
-
-async function saveSession(nextSession: any) {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : {};
-
-    await AsyncStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-            ...parsed,
-            state: {
-                ...parsed.state,
-                session: nextSession,
-            },
-        })
-    );
-}
+const TAG = "[Token]";
 
 
 export async function refreshSession(refreshToken: string) {
@@ -61,9 +44,8 @@ export async function refreshSession(refreshToken: string) {
 let refreshInFlight: Promise<string | undefined> | null = null;
 
 export async function getValidAccessToken(): Promise<string | undefined> {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    const session = parsed?.state?.session;
+    // Read from Zustand store (single source of truth, auto-persisted to AsyncStorage)
+    const session = useAuthStore.getState().session;
 
     if (!session?.access_token) return undefined;
 
@@ -87,7 +69,13 @@ export async function getValidAccessToken(): Promise<string | undefined> {
         try {
             const refreshed = await refreshSession(session.refresh_token);
             if (!refreshed?.access_token) return undefined;
-            await saveSession(refreshed);
+
+            // Update Zustand store — persist middleware auto-saves to AsyncStorage.
+            // This keeps Zustand in-memory state and AsyncStorage in sync,
+            // preventing the "refresh_token_already_used" desync bug.
+            useAuthStore.setState({ session: refreshed });
+
+            console.log(`${TAG} Token refreshed successfully (new expires_at=${refreshed.expires_at})`);
             return refreshed.access_token as string;
         } finally {
             refreshInFlight = null;

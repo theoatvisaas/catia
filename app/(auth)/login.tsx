@@ -1,3 +1,4 @@
+import { showToast } from "@/providers/ToastProvider";
 import { saveUser } from "@/services/auth/userStorage";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/stores/auth/useAuthStore";
@@ -55,6 +56,7 @@ export default function Login() {
 
       router.replace("/record");
     } catch {
+      showToast("Erro ao carregar seu perfil. Tente novamente.");
     }
   }
 

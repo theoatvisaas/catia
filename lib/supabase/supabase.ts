@@ -9,12 +9,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error("Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY");
 }
 
-/** Supabase client with anon key (no user auth). Used by AuthProvider listener. */
+/**
+ * Supabase client with anon key (no user auth).
+ * Used by AuthProvider listener for onAuthStateChange.
+ *
+ * Auth is managed by the custom backend (/auth/login, /auth/refresh),
+ * NOT by Supabase Auth — so autoRefreshToken and persistSession are
+ * disabled to prevent the SDK from interfering with our token lifecycle.
+ */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
         storage: AsyncStorage,
-        autoRefreshToken: true,
-        persistSession: true,
+        autoRefreshToken: false,
+        persistSession: false,
         detectSessionInUrl: false,
     },
 });

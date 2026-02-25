@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { Check } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -33,26 +33,12 @@ function formatMonthlyPrice(v: string) {
 export default function SubscribeScreen() {
   const insets = useSafeAreaInsets();
 
-  const { plans, loading, error, hydrated, listPlans } = usePlansStore();
+  const { plans, loading, error, listPlans } = usePlansStore();
   const { createCheckout } = usePaymentStore();
 
   const [submittingPlanId, setSubmittingPlanId] = useState<string | null>(null);
 
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-
-  useEffect(() => {
-    console.log("hydrated:", hydrated);
-
-    if (!hydrated) return;
-
-    listPlans()
-      .then(() => console.log("listPlans OK"))
-      .catch((e) => console.log("❌ erro listPlans:", e?.message ?? e));
-  }, [hydrated, listPlans]);
-
-  useEffect(() => {
-    console.log("plans:", plans);
-  }, [plans]);
 
   async function handleSubmit(priceId: string, rankTier: number) {
     if (submittingPlanId) return;
@@ -72,7 +58,7 @@ export default function SubscribeScreen() {
         | undefined;
 
       if (!secret) {
-        Alert.alert("Erro", "PaymentIntent não retornado pelo backend");
+        Alert.alert("Erro", "Falha ao iniciar assinatura.");
         return;
       }
 
@@ -89,14 +75,14 @@ export default function SubscribeScreen() {
       });
 
       if (initError) {
-        Alert.alert("Erro ao preparar pagamento", initError.message);
+        Alert.alert("Erro ao preparar pagamento");
         return;
       }
 
       const { error: presentError } = await presentPaymentSheet();
 
       if (presentError) {
-        Alert.alert("Pagamento não concluído", presentError.message);
+        Alert.alert("Pagamento não concluído");
         return;
       }
 

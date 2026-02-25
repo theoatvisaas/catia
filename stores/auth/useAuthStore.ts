@@ -4,6 +4,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+/** Replace internal/technical messages with a user-friendly fallback */
+function userFacingMessage(e: any, fallback: string): string {
+  const msg = e?.message;
+  if (!msg || msg.startsWith("Missing ") || msg.startsWith("Request failed")) return fallback;
+  return msg;
+}
+
 type AuthState = {
   session: AuthSessionResponse | null;
   loading: boolean;
@@ -32,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (e: any) {
           set({
             loading: false,
-            error: e?.message ?? "Erro ao fazer login",
+            error: userFacingMessage(e, "Erro ao fazer login"),
           });
           return false;
         }
@@ -47,7 +54,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (e: any) {
           set({
             loading: false,
-            error: e?.message ?? "Erro ao criar conta",
+            error: userFacingMessage(e, "Erro ao criar conta"),
           });
           return false;
         }
@@ -63,12 +70,7 @@ export const useAuthStore = create<AuthState>()(
           set({ loading: false });
           return response;
         } catch (e: any) {
-          const message =
-            e?.message ??
-            e?.details?.message ??
-            "Erro ao alterar senha";
-
-          set({ loading: false, error: message });
+          set({ loading: false, error: userFacingMessage(e, "Erro ao alterar senha") });
           throw e;
         }
       },

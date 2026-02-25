@@ -1,4 +1,3 @@
-// src/stores/client/useClientStore.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -13,12 +12,11 @@ type ClientState = {
   errorStatus?: number;
   hydrated: boolean;
 
-  createClient: (input: CreateClient) => Promise<ResponseClient>;
   updateClient: (input: {
     id: string;
     data: Partial<CreateClient>;
   }) => Promise<ResponseClient>;
-  getClient: () => Promise<ResponseClient | null>;
+  getClient: () => Promise<ResponseClient>;
 
   setClient: (client: ResponseClient | null) => void;
   clearClient: () => void;
@@ -53,22 +51,6 @@ export const useClientStore = create<ClientState>()(
           errorStatus: undefined,
         }),
 
-      createClient: async (input: CreateClient) => {
-        try {
-          set({ loading: true, error: null, errorStatus: undefined });
-
-          const created = await clientService.createClient(input);
-
-          set({ client: created, loading: false });
-          return created;
-        } catch (e: any) {
-          const { message, status } = parseError(e);
-
-          set({ loading: false, error: message, errorStatus: status });
-          throw e;
-        }
-      },
-
       updateClient: async ({ id, data }) => {
         try {
           set({ loading: true, error: null, errorStatus: undefined });
@@ -96,16 +78,6 @@ export const useClientStore = create<ClientState>()(
         } catch (e: any) {
           const { message, status } = parseError(e);
 
-          if (status === 404) {
-            set({
-              client: null,
-              loading: false,
-              error: null,
-              errorStatus: 404,
-            });
-            return null;
-          }
-
           set({ loading: false, error: message, errorStatus: status });
           throw e;
         }
@@ -115,7 +87,7 @@ export const useClientStore = create<ClientState>()(
       name: "client-store",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ client: state.client }),
-      onRehydrateStorage: () => (state, error) => {
+      onRehydrateStorage: () => (_state, error) => {
         useClientStore.setState({ hydrated: true });
         if (error) console.log("❌ rehydrate error:", error);
       },

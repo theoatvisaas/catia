@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { showToast } from "@/providers/ToastProvider";
 import { useAuthStore } from "@/stores/auth/useAuthStore";
 import { t } from "../../../i18n";
 import { globalStyles } from "../../../styles/theme";
@@ -85,9 +86,12 @@ export default function ChangePasswordScreen() {
 
     try {
       const response = await changePassword({ currentPassword, newPassword });
-      if (response) router.back();
+      if (response) {
+        showToast("Senha alterada com sucesso!", "success");
+        router.back();
+      }
     } catch {
-
+      // Error is stored in useAuthStore.error and displayed inline via topErrorMessage
     }
   }
 

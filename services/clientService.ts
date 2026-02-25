@@ -1,39 +1,34 @@
-import { CreateClient, ResponseClient, UpdateClientInput } from "@/types/client";
-import { api } from "./api";
-import { getValidAccessToken } from "./auth/token";
+import { getAuthenticatedSupabase } from "@/lib/supabase/supabase";
+import type { ResponseClient, UpdateClientInput } from "@/types/client";
 
 export const clientService = {
-    createClient: async (input: CreateClient) => {
-        const token = await getValidAccessToken();
-        console.log("Passando 2: ", token)
-        return api<{ client: ResponseClient }>({
-            path: "/client",
-            method: "POST",
-            body: input,
-            token,
-        }).then((r) => r.client);
+    getClient: async (): Promise<ResponseClient> => {
+        const sb = await getAuthenticatedSupabase();
+        const { data, error } = await sb.from("clients").select("*").single();
+
+        if (error) {
+            throw {
+                status: error.code === "PGRST116" ? 404 : 500,
+                message: error.message,
+            };
+        }
+
+        return data as ResponseClient;
     },
 
-    getClient: async () => {
-        const token = await getValidAccessToken();
-        console.log("passando")
-        const res = await api<any>({
-            path: "/client",
-            method: "GET",
-            token,
-        });
+    updateClient: async ({ id, data: fields }: UpdateClientInput): Promise<ResponseClient> => {
+        const sb = await getAuthenticatedSupabase();
+        const { data, error } = await sb
+            .from("clients")
+            .update(fields)
+            .eq("id", id)
+            .select()
+            .single();
 
-        return res.client ?? res;
-    },
+        if (error) {
+            throw { status: 500, message: error.message };
+        }
 
-    updateClient: async ({ id, data }: UpdateClientInput) => {
-        const token = await getValidAccessToken();
-
-        return api<{ client: ResponseClient }>({
-            path: `/client/${id}`,
-            method: "PUT",
-            body: data,
-            token,
-        }).then((r) => r.client);
+        return data as ResponseClient;
     },
 };

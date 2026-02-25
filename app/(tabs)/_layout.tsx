@@ -3,13 +3,21 @@ import { Tabs, useSegments } from "expo-router";
 import { Mic, ScrollText, Settings } from "lucide-react-native";
 import React from "react";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRecorder } from "@/providers/RecordProvider";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const segments = useSegments();
+  const { isRecording, isPaused } = useRecorder();
 
   const isNewRecord =
     segments.includes("record") && segments.includes("new-record");
+
+  // Hide tab bar when recording sheets are visible:
+  // - VoiceAction sheet: visible when isRecording && !isPaused (active recording)
+  // - StopAction sheet: visible when isPaused (recording paused)
+  // Show tab bar on the new-record screen when no sheet is open (before starting / after finishing)
+  const hideTabBar = isNewRecord && (isRecording || isPaused);
 
   const activeColor = "#7C3AED";
   const inactiveColor = "#94A3B8";
@@ -25,7 +33,7 @@ export default function TabsLayout() {
           tabBarInactiveTintColor: inactiveColor,
           tabBarLabelStyle: { fontSize: 12, marginTop: 6 },
 
-          tabBarStyle: isNewRecord
+          tabBarStyle: hideTabBar
             ? { display: "none" }
             : {
               backgroundColor: barBg,

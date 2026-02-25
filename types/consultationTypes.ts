@@ -71,6 +71,46 @@ export type Consultation = {
     userFinalized: boolean;
 };
 
+// ── Remote Consultation (fetched from Supabase) ─────────
+
+/** Consultation fetched from Supabase — display-only fields, no chunk data */
+export type RemoteConsultation = {
+    sessionId: string;
+    userId: string;
+    patientName: string;
+    guardianName: string;
+    sex: SexKey;
+    syncStatus: "synced";
+    durationMs: number;
+    chunkCount: number;
+    /** Epoch ms — parsed from created_at ISO string (when recording started locally) */
+    createdAt: number;
+    /** Epoch ms — parsed from finalized_at ISO string (when synced to Supabase) */
+    finalizedAt: number;
+    storageBucket: string;
+    storagePrefix: string;
+};
+
+// ── Example Consultation (for new users) ────────────────
+
+/** Lightweight consultation for demo/example purposes — no chunks, no sync */
+export type ExampleConsultation = {
+    sessionId: string;
+    patientName: string;
+    guardianName: string;
+    durationMs: number;
+    createdAt: number;
+    isExample: true;
+};
+
+// ── Display Consultation (union for History screen) ─────
+
+/** Discriminated union for items in the History list */
+export type DisplayConsultation =
+    | (Consultation & { source: "local" })
+    | (RemoteConsultation & { source: "remote" })
+    | (ExampleConsultation & { source: "example" });
+
 // ── Sync Progress ────────────────────────────────────────
 
 export type SyncProgress = {

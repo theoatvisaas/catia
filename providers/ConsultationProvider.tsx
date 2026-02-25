@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useConsultationStore } from "@/stores/consultation/useConsultationStore";
+import { useClientStore } from "@/stores/client/useClientStore";
+import { useRemoteConsultationsStore } from "@/stores/consultation/useRemoteConsultationsStore";
+import { showToast } from "@/providers/ToastProvider";
 import { runStartupRecovery, type StartupRecoveryResult } from "@/services/recordings/startupRecovery";
 
 type ConsultationCtxValue = {
@@ -36,6 +39,18 @@ export function ConsultationProvider({ children }: { children: React.ReactNode }
             .then((result) => {
                 if (cancelled) return;
                 setCrashedSessions(result.recoveredSessions);
+
+                // Prefetch page 0 of remote consultations (non-blocking)
+                useRemoteConsultationsStore.getState().refresh().catch((err) => {
+                    console.warn("[ConsultationProvider] Prefetch consultations error:", err);
+                    showToast("Erro ao carregar consultas. Puxe para atualizar.");
+                });
+
+                // Prefetch client data (non-blocking)
+                useClientStore.getState().getClient().catch((err) => {
+                    console.warn("[ConsultationProvider] Prefetch client error:", err);
+                    showToast("Erro ao carregar seu perfil. Abra Configurações para tentar novamente.");
+                });
             })
             .catch((err) => {
                 console.warn("[ConsultationProvider] Recovery error:", err);

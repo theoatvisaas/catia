@@ -1,4 +1,5 @@
 import { ts } from "@/lib/logger";
+import { showToast } from "@/providers/ToastProvider";
 import { getAuthenticatedSupabase } from "@/lib/supabase/supabase";
 import { useConsultationStore } from "@/stores/consultation/useConsultationStore";
 import { getNetworkStatus } from "../network/networkMonitor";
@@ -71,6 +72,7 @@ async function uploadSingleChunk(
             lastError: `Local file unreadable: ${msg}`,
             retryCount: chunk.retryCount + 1,
         });
+        showToast("Erro ao ler arquivo de áudio local. Tentaremos novamente.");
         return { chunkIndex: chunk.index, order: chunk.order, success: false, error: msg };
     }
 
@@ -328,7 +330,7 @@ export async function resumePartialSession(sessionId: string): Promise<void> {
 // ── Finalize consultation ────────────────────────────────
 
 /**
- * After all chunks are uploaded, save metadata to `recording_sessions`
+ * After all chunks are uploaded, save metadata to `consultations`
  * table and clean up local files. Marks consultation as `synced`.
  */
 export async function finalizeConsultation(sessionId: string): Promise<boolean> {
@@ -364,8 +366,8 @@ export async function finalizeConsultation(sessionId: string): Promise<boolean> 
         return false;
     }
 
-    // ── Upsert metadata to recording_sessions table ──
-    console.log(`${ts(TAG)} finalizeConsultation() | Upserting metadata to recording_sessions table...`);
+    // ── Upsert metadata to consultations table ──
+    console.log(`${ts(TAG)} finalizeConsultation() | Upserting metadata to consultations table...`);
 
     const upsertData = {
         session_id: consultation.sessionId,
@@ -378,13 +380,14 @@ export async function finalizeConsultation(sessionId: string): Promise<boolean> 
         duration_ms: consultation.durationMs,
         chunk_count: consultation.chunks.length,
         status: "synced",
+        created_at: new Date(consultation.createdAt).toISOString(),
         finalized_at: new Date().toISOString(),
     };
 
     console.log(`${ts(TAG)} finalizeConsultation() | Upsert data:`, JSON.stringify(upsertData, null, 2));
 
     const supabase = await getAuthenticatedSupabase();
-    const { error } = await supabase.from("recording_sessions").upsert(
+    const { error } = await supabase.from("consultations").upsert(
         upsertData,
         { onConflict: "session_id" }
     );
@@ -408,14 +411,10 @@ export async function finalizeConsultation(sessionId: string): Promise<boolean> 
     await deleteSessionChunks(sessionId);
     console.log(`${ts(TAG)} finalizeConsultation() | Local files deleted`);
 
-    // Mark as fully synced
-    store.updateConsultation(sessionId, {
-        syncStatus: "synced",
-        lastSyncedAt: Date.now(),
-        hasTempBuffer: false,
-    });
+    // Remove from local store — consultation now lives only in Supabase
+    store.removeConsultation(sessionId);
 
-    console.log(`${ts(TAG)} finalizeConsultation(${sessionId}) | ✅ DONE — consultation synced`);
+    console.log(`${ts(TAG)} finalizeConsultation(${sessionId}) | ✅ DONE — removed from local store`);
     return true;
 }
 
@@ -451,6 +450,7 @@ export async function discardConsultation(sessionId: string): Promise<void> {
     } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.warn(`${ts(TAG)} discardConsultation() | ⚠️ No auth token — skipping remote delete: ${msg}`);
+        showToast("Consulta descartada localmente. Faça login novamente para finalizar a limpeza.");
         supabase = null;
     }
 
@@ -464,6 +464,7 @@ export async function discardConsultation(sessionId: string): Promise<void> {
 
         if (error) {
             console.warn(`${ts(TAG)} discardConsultation() | ⚠️ Failed to delete some chunks from Storage: ${error.message}`);
+            showToast("Consulta descartada localmente. Alguns dados remotos não puderam ser removidos.");
         } else {
             console.log(`${ts(TAG)} discardConsultation() | Supabase chunks deleted OK`);
         }
@@ -654,12 +655,24 @@ export async function autoSyncAll(): Promise<void> {
                 lastError: msg,
             });
             failedCount++;
+            showToast("Sincronização automática falhou. Tentaremos novamente em breve.");
         }
     }
 
     console.log(
         `${ts(TAG)} autoSyncAll() | DONE — synced=${syncedCount} | skipped=${skippedCount} | failed=${failedCount} | total=${incomplete.length}`
     );
+
+    // If any consultations were finalized, refresh the remote consultations store
+    // so the History screen shows the newly synced items in real-time
+    if (syncedCount > 0) {
+        const { useRemoteConsultationsStore } = await import(
+            "@/stores/consultation/useRemoteConsultationsStore"
+        );
+        useRemoteConsultationsStore.getState().refresh().catch((err) =>
+            console.warn(`${ts(TAG)} autoSyncAll() | Remote refresh error:`, err)
+        );
+    }
 }
 
 // ── Sync progress ────────────────────────────────────────

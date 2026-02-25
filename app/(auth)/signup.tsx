@@ -1,4 +1,5 @@
 // app/(auth)/signup.tsx
+import { showToast } from "@/providers/ToastProvider";
 import { useAuthStore } from "@/stores/auth/useAuthStore";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -54,8 +55,14 @@ export default function SignUp() {
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   async function handleSignUp() {
-    if (!agreePrivacy || !agreeTerms) return;
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      showToast("Preencha seu nome para continuar.");
+      return;
+    }
+    if (!agreePrivacy || !agreeTerms) {
+      showToast("Aceite os termos e a política de privacidade para continuar.");
+      return;
+    }
 
     const response = await signUp({ name, email, password });
     if (response) router.replace("/login");

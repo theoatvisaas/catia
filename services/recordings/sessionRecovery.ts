@@ -104,7 +104,7 @@ export async function finalizePartialSession(
     const totalChunks = uploadedChunks.length + (recovered ? 1 : 0);
 
     const supabase = await getAuthenticatedSupabase();
-    const { error } = await supabase.from("recording_sessions").insert({
+    const { error } = await supabase.from("consultations").insert({
         session_id: session.sessionId,
         user_id: session.userId,
         storage_bucket: session.bucket,

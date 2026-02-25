@@ -19,9 +19,10 @@ import { createSpeechRecordingConfig } from "@/lib/audioRecorder";
 import { ChunkBufferManager } from "@/services/recordings/chunkBufferManager";
 import { chunkUploadQueue } from "@/services/recordings/chunkUploadQueue";
 import { StreamWatchdog } from "@/services/recordings/streamWatchdog";
-import { finalizeConsultation, discardConsultation } from "@/services/recordings/consultationSyncService";
+import { finalizeConsultation, discardConsultation, retrySyncConsultation } from "@/services/recordings/consultationSyncService";
 import { requestNotificationPermission, notifyStreamDead, notifyDiskFull } from "@/services/notifications/notificationService";
 import { ts } from "@/lib/logger";
+import { showToast } from "@/providers/ToastProvider";
 import { useConsultationStore } from "@/stores/consultation/useConsultationStore";
 import type { SyncProgress } from "@/types/consultationTypes";
 import type { SexKey } from "@/types/uploadTypes";
@@ -476,20 +477,36 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
             );
 
             if (drained) {
-                // Queue drained — attempt to finalize
-                console.log(`${ts(TAG)} finish() | Queue drained — calling finalizeConsultation()...`);
+                // Queue drained — but there may be chunks that were saved locally
+                // during recording and never enqueued (e.g., upload failed, network lost).
+                // Use retrySyncConsultation() to upload them in parallel before finalizing.
+                const postDrain = store.getState().getConsultation(sessionId);
+                const stillPending = postDrain?.chunks.filter(c => c.status !== "uploaded").length ?? 0;
+
+                if (stillPending > 0) {
+                    console.log(
+                        `${ts(TAG)} finish() | Queue drained but ${stillPending} chunk(s) still pending — running retrySyncConsultation()...`
+                    );
+                    const allSynced = await retrySyncConsultation(sessionId);
+                    console.log(`${ts(TAG)} finish() | retrySyncConsultation result: allSynced=${allSynced}`);
+                }
+
+                // Attempt to finalize (upsert recording_session + delete local files)
+                console.log(`${ts(TAG)} finish() | Calling finalizeConsultation()...`);
                 try {
                     const finalized = await finalizeConsultation(sessionId);
                     if (finalized) {
-                        console.log(`${ts(TAG)} finish() | ✅ Consultation FINALIZED as synced`);
+                        console.log(`${ts(TAG)} finish() | ✅ Consultation FINALIZED & removed from local store`);
                     } else {
                         console.warn(`${ts(TAG)} finish() | ⚠️ finalizeConsultation returned false — not all chunks uploaded`);
                         store.getState().recomputeSyncStatus(sessionId);
+                        showToast("Consulta salva localmente. A sincronização continuará em segundo plano.");
                     }
                 } catch (err) {
                     const msg = err instanceof Error ? err.message : String(err);
                     console.warn(`${ts(TAG)} finish() | ⚠️ Finalization error: ${msg}`);
                     store.getState().recomputeSyncStatus(sessionId);
+                    showToast("Erro ao finalizar consulta. Seus dados estão seguros, tentaremos novamente ao reabrir o app.");
                 }
             } else {
                 // Some chunks still pending — will be synced later via autoSyncAll()
@@ -498,6 +515,7 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
                 console.log(
                     `${ts(TAG)} finish() | Queue did NOT drain — consultation left as ${status} — will sync later`
                 );
+                showToast("Consulta salva localmente. A sincronização continuará em segundo plano.");
             }
         }
 
@@ -543,6 +561,7 @@ export function RecorderProvider({ children }: { children: React.ReactNode }) {
             } catch (err) {
                 const msg = err instanceof Error ? err.message : String(err);
                 console.warn(`${ts(TAG)} discard() | ⚠️ Failed to discard consultation: ${msg}`);
+                showToast("Gravação descartada. Alguns arquivos temporários serão limpos depois.");
             }
         }
 

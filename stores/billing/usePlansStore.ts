@@ -10,6 +10,8 @@ type PlansState = {
     loading: boolean;
     error: string | null;
     hydrated: boolean;
+    /** True after the first successful fetch (not persisted — resets on app restart) */
+    fetched: boolean;
 
     listPlans: () => Promise<Plan[]>;
     setPlans: (plans: Plan[]) => void;
@@ -32,6 +34,7 @@ export const usePlansStore = create<PlansState>()(
             loading: false,
             error: null,
             hydrated: false,
+            fetched: false,
 
             setPlans: (plans) => set({ plans }),
             clearPlans: () => set({ plans: [], loading: false, error: null }),
@@ -41,10 +44,10 @@ export const usePlansStore = create<PlansState>()(
                 try {
                     set({ loading: true, error: null });
 
-                    const res = await plansService.listPlans();
+                    const plans = await plansService.listPlans();
 
-                    set({ plans: res.plans ?? [], loading: false });
-                    return res.plans ?? [];
+                    set({ plans, loading: false, fetched: true });
+                    return plans;
                 } catch (e: any) {
                     set({ loading: false, error: parseError(e) });
                     throw e;
